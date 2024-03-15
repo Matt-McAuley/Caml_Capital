@@ -1,4 +1,4 @@
-(* open OUnit2
+open OUnit2
 
 (* let player_tests = "test suite for reduce" >::: [ "testing" >:: (fun _ ->
    assert_equal ; ]
