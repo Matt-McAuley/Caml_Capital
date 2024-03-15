@@ -1,4 +1,4 @@
-type property = {
+type t = {
   name : string;
   pos : int;
   cost : int;
