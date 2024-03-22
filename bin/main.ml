@@ -19,7 +19,7 @@ let print_logo () =
 (** [plist_to_str plist] converts the property list [plist] to a string. *)
 let plist_to_str (plist : Property.t list) =
   let lst = List.map (fun x -> Property.get_name x) plist in
-  "[" ^ String.concat "; " lst ^ "]"
+  "()" ^ String.concat ", " lst ^ ")"
 
 (** [player_info player] is the information of a [player] printed to the
     console. *)
@@ -30,7 +30,7 @@ let player_info player =
     let position = string_of_int (Player.get_position player) in
     let money = string_of_int (Player.get_money player) in
     let properties = plist_to_str (Player.get_properties player) in
-    Printf.sprintf "%-10s: Position: %-1s | Money: %-4s | Properties: %s" name
+    Printf.sprintf "%-10s: Position: %-2s | Money: %-5s | Properties: %s" name
       position money properties
 
 (** [print_info p1 p2 p3 p4] prints the information of players 1-4 to the
