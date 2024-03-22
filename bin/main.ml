@@ -1,8 +1,8 @@
 open Final_project
 open Temp_properties
 
-(** Print the interface with the following format: Position on board: <users>
-    Money for each player: <users> Properties owned: <users>*)
+(** [print_logo] is the interface with the following format: Position on board: <users>
+    Money for each player: <users> Properties owned: <users> printed to the console.*)
 let print_logo () =
   let print_file filename =
     let file = open_in filename in
@@ -15,21 +15,23 @@ let print_logo () =
   in
   print_file "data/interface.txt"
 
+(** [plist_to_str plist] converts the property list [plist] to a string. *)
 let plist_to_str (plist : Property.t list) =
   let lst = List.map (fun x -> Property.get_name x) plist in
   "[" ^ String.concat "; " lst ^ "]"
 
+(** [player_info player] is the information of a [player] printed to the console. *)
 let player_info player =
   if player = Player.empty then ""
   else
-    Player.get_name player ^ " | " ^ "Position: "
-    ^ string_of_int (Player.get_position player)
-    ^ " | Money: "
-    ^ string_of_int (Player.get_money player)
-    ^ " | Properties: "
-    ^ plist_to_str (Player.get_properties player)
+    let name = Player.get_name player in
+    let position = string_of_int (Player.get_position player) in
+    let money = string_of_int (Player.get_money player) in
+    let properties = plist_to_str (Player.get_properties player) in
+    Printf.sprintf "%-10s: Position: %-1s | Money: %-4s | Properties: %s" name
+      position money properties
 
-(* Print info about each player. If the player is empty, print empty string*)
+(** [print_info p1 p2 p3 p4] prints the information of players 1-4 to the console. *)
 let print_info (p1 : Player.t) (p2 : Player.t) (p3 : Player.t) (p4 : Player.t) :
     unit =
   let p1_info = player_info p1 in
@@ -41,26 +43,28 @@ let print_info (p1 : Player.t) (p2 : Player.t) (p3 : Player.t) (p4 : Player.t) :
   print_endline p3_info;
   print_endline p4_info
 
-(** Makes player with name according to user input*)
+(** [make_player] makes a player with name according to user input. *)
 let make_player () : Player.t =
   let p_name = read_line () in
   if p_name = "" then Player.empty else Player.create_player p_name
 
-(** Creates random number between 1-6*)
+(** [roll_dice] is a random number between 2-12 as two dice rolls would be.*)
 let roll_dice () =
   let () = Random.self_init () in
-  1 + Random.int 6
+  2 + Random.int 10
 
-(** Moves player n spots dependent on what the player rolled*)
-let move_player (name : string) (n : int) =
-  Printf.printf "%s moved %d spots \n" name n
+(** [move_player_random player] is a [player] with position updated according to a 
+  random roll of two dice with values over 40 being truncated to fit on the board. *)
+let move_player_random (player : Player.t) =
+  let dice_roll = roll_dice () in
+  Printf.printf "%s moved %d spots \n" (Player.get_name player) dice_roll;
+  Player.(set_position player (((get_position player) + dice_roll) mod 40))
 
-(** Begins game by asking player to type start*)
 let () =
   print_logo ();
-  let () = print_string "Type \"start\" to begin the game: " in
+  let () = print_string "Press \"ENTER\" to begin the game: " in
   let the_input = read_line () in
-  if the_input = "start" then begin
+  if the_input = "" then begin
     (* Create player 1*)
     let () = print_string "Player1 type your name: " in
     let p1 = make_player () in
@@ -76,4 +80,22 @@ let () =
     print_info p1 p2 p3 p4
   end
 
-(* let () = let roll = roll_dice () in move_player "bob" roll *)
+(** [clear_terminal] clears all text from the terminal *)
+let clear_terminal () = Sys.command "clear"
+
+(** [check_game_continue p1 p2 p3 p4] returns whether more than 1 players are left
+with money in their account.*)
+let check_players_left p1 p2 p3 p4 =
+  let player_left_increment player =
+    if Player.get_money player <= 0 then 0 else 1 in
+  (player_left_increment p1 + player_left_increment p2 
+  + player_left_increment p3 + player_left_increment p4) > 1
+
+(** [get_property_owner prop p1 p2 p3 p4] is an option of the owner if someone
+    owns the property or None otherwise. *)
+let get_property_owner prop p1 p2 p3 p4 =
+  if List.mem prop (Player.get_properties p1) then Some p1 else
+  if List.mem prop (Player.get_properties p2) then Some p2 else
+  if List.mem prop (Player.get_properties p3) then Some p3 else
+  if List.mem prop (Player.get_properties p4) then Some p4 else
+  None
