@@ -6,6 +6,9 @@ type t = {
 }
 
 let create_player name = { name; position = 0; properties = []; money = 1500 }
+
+let get_name player = player.name
+
 let get_position player = player.position
 
 let set_position player new_pos =
@@ -33,6 +36,8 @@ let remove_property player property =
     properties = List.filter (fun x -> x = property) player.properties;
     money = player.money;
   }
+
+let get_money player = player.money
 
 let add_money player money =
   {
