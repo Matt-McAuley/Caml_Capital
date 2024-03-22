@@ -1,6 +1,10 @@
 type t
 (** [d] is the type that represents a player of the Monopoly game *)
 
+val empty : t
+(** [empty] is a player with no name and negative money and index values
+    to indicitate that it is not a real player. *)
+
 val create_player : string -> t
 (** [create_player name] is a player starting at index of 0 with the identifier [name]
     starting with 1500 dollars and no properties. *)
