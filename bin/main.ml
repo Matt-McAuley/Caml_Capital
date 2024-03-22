@@ -21,14 +21,13 @@ let plist_to_str (plist : Property.t list) =
 let player_info player =
   if player = Player.empty then ""
   else
-    Player.get_name player ^ " | " ^ "Position: "
-    ^ string_of_int (Player.get_position player)
-    ^ " | Money: "
-    ^ string_of_int (Player.get_money player)
-    ^ " | Properties: "
-    ^ plist_to_str (Player.get_properties player)
+    let name = Player.get_name player in
+    let position = string_of_int (Player.get_position player) in
+    let money = string_of_int (Player.get_money player) in
+    let properties = plist_to_str (Player.get_properties player) in
+    Printf.sprintf "%-10s: Position: %-1s | Money: %-4s | Properties: %s" name
+      position money properties
 
-(* Print info about each player. If the player is empty, print empty string*)
 let print_info (p1 : Player.t) (p2 : Player.t) (p3 : Player.t) (p4 : Player.t) :
     unit =
   let p1_info = player_info p1 in
@@ -57,9 +56,9 @@ let move_player (name : string) (n : int) =
 (** Begins game by asking player to type start*)
 let () =
   print_logo ();
-  let () = print_string "Type \"start\" to begin the game: " in
+  let () = print_string "Press \"ENTER\" to begin the game: " in
   let the_input = read_line () in
-  if the_input = "start" then begin
+  if the_input = "" then begin
     (* Create player 1*)
     let () = print_string "Player1 type your name: " in
     let p1 = make_player () in
