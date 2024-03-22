@@ -5,6 +5,10 @@ val empty : t
 (** [empty] is a player with no name and negative money and index values
     to indicitate that it is not a real player. *)
 
+val is_empty : t -> bool
+(** [is_empty player] is whether [player] is an empty player determined by
+    having no name, negative money, and negative position. *)
+
 val create_player : string -> t
 (** [create_player name] is a player starting at index of 0 with the identifier [name]
     starting with 1500 dollars and no properties. *)
