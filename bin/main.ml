@@ -102,10 +102,10 @@ let owns_property prop player =
 let buy_property (player : Player.t) (property : Property.t) =
   let prop_name = Property.get_name property in
   let prop_cost = string_of_int (Property.get_cost property) in
-  Printf.printf "Type \"BUY\" if you want to purchase %s for %s: " prop_name
+  Printf.printf "Press \"ENTER\" if you want to purchase %s for %s: " prop_name
     prop_cost;
   let the_input = read_line () in
-  if the_input = "BUY" then begin
+  if the_input = "" then begin
     if Player.get_money player > Property.get_cost property then
       Player.add_property
         (Player.remove_money player (Property.get_cost property))
@@ -145,7 +145,6 @@ let land_on_prop property player p1 p2 p3 p4 =
 
 let rec game_loop (p1 : Player.t) (p2 : Player.t) (p3 : Player.t)
     (p4 : Player.t) turn =
-  Printf.printf "Player: %d" (turn mod 4);
   if not (check_players_left p1 p2 p3 p4) then ()
   else
     let _ = Sys.command "clear" in
@@ -215,25 +214,6 @@ let rec game_loop (p1 : Player.t) (p2 : Player.t) (p3 : Player.t)
       else game_loop p1 p2 p3 p4 (turn + 1)
 
 let run_game p1 p2 p3 p4 = game_loop p1 p2 p3 p4 1
-
-(** [game_loop p1 p2 p3 p4] creates the game loop where players are queried to
-    roll the dice. If they land on an unknowned property they are given the
-    option to buy the property. If the property is owned, they automatically pay
-    rent to the respective owner*)
-(* let rec game_loop (p1 : Player.t) (p2 : Player.t) (p3 : Player.t) (p4 :
-   Player.t) = let _ = Sys.command "clear" in print_info p1 p2 p3 p4; let p1 =
-   if p1 <> Player.empty && query_player p1 then let p1 = move_player_random p1
-   in let property = check_property_at_pos (Player.get_position p1) in let
-   result = land_on_prop property p1 p1 p2 p3 p4 in let p1 = fst result in if
-   owns_property property p1 then let p1 = snd result else if owns_property
-   property p2 then let p2 = snd result else if owns_property property p3 then
-   let p3 = snd result else let p4 = snd result in let p2 = if p2 <>
-   Player.empty && query_player p2 then move_player_random p2 else p2 in let p3
-   = if p3 <> Player.empty && query_player p3 then move_player_random p3 else p3
-   in let p4 = if p4 <> Player.empty && query_player p4 then move_player_random
-   p4 else p4 in
-
-   if (check_players_left p1 p2 p3 p4) then game_loop p1 p2 p3 p4 else () *)
 
 (** Begins game by asking player to type start*)
 let () =
