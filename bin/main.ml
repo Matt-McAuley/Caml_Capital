@@ -123,13 +123,17 @@ let buy_property (player : Player.t) (property : Property.t) =
     sufficient funds. If [player] does not have enough money to cover rent, they
     pay their remaining money to [owner] and [player] is now bankrupt*)
 let pay_rent (player : Player.t) (owner : Player.t) (property : Property.t) =
+  Printf.printf "%s landed on %s and owes %d to %s. " (Player.get_name player)
+    (Property.get_name property)
+    (Property.get_cost property)
+    (Player.get_name owner);
   let balance = Player.get_money player in
   let rent = Property.get_cost property in
   let price = if balance < rent then balance else rent in
   let new_player = Player.remove_money player price in
   let new_owner = Player.add_money owner price in
   let new_player =
-    if Player.get_money new_player < 0 then Player.empty else new_player
+    if Player.get_money new_player <= 0 then Player.empty else new_player
   in
   (new_player, new_owner)
 
