@@ -45,14 +45,17 @@ let make_player () : Player.t =
   let p_name = read_line () in
   if p_name = "" then Player.empty else Player.create_player p_name
 
-(** Creates random number between 1-6*)
+(** [roll_dice] is a random number between 2-12 as two dice rolls would be.*)
 let roll_dice () =
   let () = Random.self_init () in
-  1 + Random.int 6
+  2 + Random.int 10
 
-(** Moves player n spots dependent on what the player rolled*)
-let move_player (name : string) (n : int) =
-  Printf.printf "%s moved %d spots \n" name n
+(** [move_player_random player] is a [player] with position updated according to a 
+  random roll of two dice with values over 40 being truncated to fit on the board. *)
+let move_player_random (player : Player.t) =
+  let dice_roll = roll_dice () in
+  Printf.printf "%s moved %d spots \n" (Player.get_name player) dice_roll;
+  Player.(set_position player (((get_position player) + dice_roll) mod 40))
 
 (** Begins game by asking player to type start*)
 let () =
@@ -75,4 +78,5 @@ let () =
     print_info p1 p2 p3 p4
   end
 
-(* let () = let roll = roll_dice () in move_player "bob" roll *)
+(** [clear_terminal] clears all text from the terminal *)
+let clear_terminal () = Sys.command "clear"
