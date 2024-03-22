@@ -23,3 +23,30 @@ let northcarolinaave = create_property "North Carolina Avenue" 19 300 26
 let pennsylvaniaave = create_property "Pennsylvania Avenue" 20 320 28
 let parkplace = create_property "Park Place" 21 350 35
 let boardwalk = create_property "Boardwalk" 22 400 50
+
+let property_list =
+  [
+    go;
+    mediterraneanave;
+    balticave;
+    orientalave;
+    vermontave;
+    connecticutave;
+    stcharlesplace;
+    statesave;
+    virginiaave;
+    stjamesplace;
+    tennesseeave;
+    newyorkave;
+    kentuckyave;
+    indianaave;
+    illinoisave;
+    atlanticave;
+    ventnorave;
+    marvingardens;
+    pacificave;
+    northcarolinaave;
+    pennsylvaniaave;
+    parkplace;
+    boardwalk;
+  ]
