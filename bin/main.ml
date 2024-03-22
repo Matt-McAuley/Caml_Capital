@@ -1,4 +1,5 @@
 open Final_project
+open Temp_properties
 
 (** [print_logo] is the interface with the following format: Position on board:
     <users> Money for each player: <users> Properties owned: <users> printed to

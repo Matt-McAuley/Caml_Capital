@@ -18,5 +18,5 @@ val ( = ) : t -> t -> bool
     Two properties are the same property if they have the same name. *)
 
 val create_property : string -> int -> int -> int -> t
-(** [create_property] creates a property with the given name, position, cost,
-    and rent. *)
+(** [create_property name pos cost rent] creates a property with the name
+    [name], position [pos], cost [cost], and rent [rent]. *)
