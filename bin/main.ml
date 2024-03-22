@@ -102,10 +102,10 @@ let owns_property prop player =
 let buy_property (player : Player.t) (property : Property.t) =
   let prop_name = Property.get_name property in
   let prop_cost = string_of_int (Property.get_cost property) in
-  Printf.printf "Type \"BUY\" if you want to purchase %s for %s: " prop_name
+  Printf.printf "Press \"ENTER\" if you want to purchase %s for %s: " prop_name
     prop_cost;
   let the_input = read_line () in
-  if the_input = "BUY" then begin
+  if the_input = "" then begin
     if Player.get_money player > Property.get_cost property then
       Player.add_property
         (Player.remove_money player (Property.get_cost property))
@@ -123,13 +123,17 @@ let buy_property (player : Player.t) (property : Property.t) =
     sufficient funds. If [player] does not have enough money to cover rent, they
     pay their remaining money to [owner] and [player] is now bankrupt*)
 let pay_rent (player : Player.t) (owner : Player.t) (property : Property.t) =
+  Printf.printf "%s landed on %s and owes %d to %s. " (Player.get_name player)
+    (Property.get_name property)
+    (Property.get_cost property)
+    (Player.get_name owner);
   let balance = Player.get_money player in
   let rent = Property.get_cost property in
   let price = if balance < rent then balance else rent in
   let new_player = Player.remove_money player price in
   let new_owner = Player.add_money owner price in
   let new_player =
-    if Player.get_money new_player < 0 then Player.empty else new_player
+    if Player.get_money new_player <= 0 then Player.empty else new_player
   in
   (new_player, new_owner)
 
@@ -141,7 +145,6 @@ let land_on_prop property player p1 p2 p3 p4 =
 
 let rec game_loop (p1 : Player.t) (p2 : Player.t) (p3 : Player.t)
     (p4 : Player.t) turn =
-  Printf.printf "Player: %d" (turn mod 4);
   if not (check_players_left p1 p2 p3 p4) then ()
   else
     let _ = Sys.command "clear" in
