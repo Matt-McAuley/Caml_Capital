@@ -1,4 +1,5 @@
 open Final_project
+open Temp_properties
 
 (** Print the interface with the following format: Position on board: <users>
     Money for each player: <users> Properties owned: <users>*)
