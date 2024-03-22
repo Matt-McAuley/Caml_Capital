@@ -5,6 +5,9 @@ val create_player : string -> t
 (** [create_player name] is a player starting at index of 0 with the identifier [name]
     starting with 1500 dollars and no properties. *)
 
+val get_name : t -> string
+(** [get_name player] is the name of [player]. *)
+
 val get_position : t -> int
 (** [get_position player] is the index of [player] on the board. *)
 
@@ -22,6 +25,9 @@ val add_property : t -> Property.t -> t
 val remove_property : t -> Property.t -> t
 (** [add_property player property] is a player with the fields of [player] but with 
     [property] removed from their properties. *)
+
+val get_money : t -> int
+(** [get_properties player] is the amount of money owned by [player]. *)
 
 val add_money : t -> int -> t
 (** [add_money player property] is a player with the fields of [player] but with 
