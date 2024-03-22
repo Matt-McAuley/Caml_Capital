@@ -65,12 +65,52 @@ let move_player_random (player : Player.t) =
   Printf.printf "%s moved %d spots \n" (Player.get_name player) dice_roll;
   Player.(set_position player ((get_position player + dice_roll) mod 40))
 
+(** [query_player player] queries the respective player to roll the dice *)
 let query_player (player : Player.t) =
   Printf.printf "%s, Roll the dice by pressing \"ENTER\": "
     (Player.get_name player);
   let the_input = read_line () in
   the_input = ""
 
+(** [buy_property player property] allows the player to purchase the property
+    they landed on if they choose to do so. If [player] does not have sufficient
+    funds to purchase [property] they are told so*)
+let buy_property (player : Player.t) (property : Property.t) =
+  let prop_name = Property.get_name property in
+  let prop_cost = string_of_int (Property.get_cost property) in
+  Printf.printf "Type \"BUY\" if you want to purchase %s for %s: " prop_name
+    prop_cost;
+  let the_input = read_line () in
+  if the_input = "BUY" then begin
+    if Player.get_money player > Property.get_cost property then
+      Player.add_property player property
+    else begin
+      Printf.printf "Insufficient funds to purchase %s" prop_name;
+      player
+    end
+  end
+  else player
+
+(** [pay_rent player owner property] is the tuple of [(player, owner)] where
+    their respective bank accounts have been adjusted according to the rent.
+    [player] pays [owner] the price of rent of [property] if they have
+    sufficient funds. If [player] does not have enough money to cover rent, they
+    pay their remaining money to [owner] and [player] is now bankrupt*)
+let pay_rent (player : Player.t) (owner : Player.t) (property : Property.t) =
+  let balance = Player.get_money player in
+  let rent = Property.get_cost property in
+  let price = if balance < rent then balance else rent in
+  let new_player = Player.remove_money player price in
+  let new_owner = Player.add_money owner price in
+  let new_player =
+    if Player.get_money new_player > 0 then Player.empty else new_player
+  in
+  (new_player, new_owner)
+
+(** [game_loop p1 p2 p3 p4] creates the game loop where players are queried to
+    roll the dice. If they land on an unknowned property they are given the
+    option to buy the property. If the property is owned, they automatically pay
+    rent to the respective owner*)
 let rec game_loop (p1 : Player.t) (p2 : Player.t) (p3 : Player.t)
     (p4 : Player.t) =
   let _ = Sys.command "clear" in
@@ -109,7 +149,7 @@ let () =
     let () = print_string "Player4 type your name: " in
     let p4 = make_player () in
     let () = game_loop p1 p2 p3 p4 in
-    print_endline "Gameover"
+    print_endline "GAMEOVER"
   end
 
 (** [clear_terminal] clears all text from the terminal *)
