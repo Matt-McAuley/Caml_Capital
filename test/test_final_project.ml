@@ -2,7 +2,6 @@ open OUnit2
 open Final_project
 
 let new_player = Player.create_player "Bob"
-<<<<<<< HEAD
 let new_player_tests = "test suite for new player" >::: 
 [ "testing position" >:: (fun _ -> assert_equal Player.(get_position new_player) 0);
   "testing properties" >:: (fun _ -> assert_equal Player.(get_properties new_player) []);
@@ -18,8 +17,6 @@ let modified_player_tests = "test suite for new player" >:::
   "testing money" >:: (fun _ -> assert_equal Player.(get_money changed_player) 1500);
   "testing name" >:: (fun _ -> assert_equal Player.(get_name changed_player) "Bob");
 ]
-=======
->>>>>>> 0ded095d3d3769abb2196911cc6d106c823bbdb2
 
 let prop1 = Property.create_property "Prop 1" 1 100 20
 let prop2 = Property.create_property "Prop 2" 1 100 20
