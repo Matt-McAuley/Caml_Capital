@@ -35,7 +35,7 @@ let remove_property player property =
   {
     name = player.name;
     position = player.position;
-    properties = List.filter (fun x -> x = property) player.properties;
+    properties = List.filter (fun x -> x <> property) player.properties;
     money = player.money;
   }
 
