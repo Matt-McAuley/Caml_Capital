@@ -1,4 +1,4 @@
-type p = {
+type t = {
   name : string;
   position : int;
   properties : Property.t list;
