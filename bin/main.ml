@@ -58,13 +58,14 @@ let roll_dice () =
   2 + Random.int 10
 
 (** [move_player_random player] is a [player] with position updated according to
-    a random roll of two dice with values over 40 being truncated to fit on the
+    a random roll of two dice with values over 22 being truncated to fit on the
     board. *)
 let move_player_random (player : Player.t) =
   let dice_roll = roll_dice () in
   Printf.printf "%s moved %d spots \n" (Player.get_name player) dice_roll;
-  Player.(set_position player ((get_position player + dice_roll) mod 40))
+  Player.(set_position player ((get_position player + dice_roll) mod 22))
 
+(** [query_player player] queries the respective player to roll the dice *)
 let query_player (player : Player.t) =
   Printf.printf "%s, Roll the dice by pressing \"ENTER\": "
     (Player.get_name player);
@@ -93,16 +94,52 @@ let get_property_owner prop p1 p2 p3 p4 =
 let check_property_at_pos pos =
   (List.nth property_list pos)
 
-let land_on_prop property player p1 p2 p3 p4 = 
-    let property_owner = get_property_owner property p1 p2 p3 p4 in
-    match property_owner with
-    | Some x -> if x = player then (player, x) else pay_rent player x property
-    | None -> buy_property player property
-
 let owns_property prop player =
   if List.mem prop (Player.get_properties player) then true else false
 
+(** [buy_property player property] allows the player to purchase the property
+  they landed on if they choose to do so. If [player] does not have sufficient
+  funds to purchase [property] they are told so*)
+  let buy_property (player : Player.t) (property : Property.t) =
+    let prop_name = Property.get_name property in
+    let prop_cost = string_of_int (Property.get_cost property) in
+    Printf.printf "Type \"BUY\" if you want to purchase %s for %s: " prop_name
+      prop_cost;
+    let the_input = read_line () in
+    if the_input = "BUY" then begin
+      if Player.get_money player > Property.get_cost property then
+        Player.add_property player property
+      else begin
+        Printf.printf "Insufficient funds to purchase %s" prop_name;
+        player
+      end
+    end
+    else player
+  
+  (** [pay_rent player owner property] is the tuple of [(player, owner)] where
+      their respective bank accounts have been adjusted according to the rent.
+      [player] pays [owner] the price of rent of [property] if they have
+      sufficient funds. If [player] does not have enough money to cover rent, they
+      pay their remaining money to [owner] and [player] is now bankrupt*)
+  let pay_rent (player : Player.t) (owner : Player.t) (property : Property.t) =
+    let balance = Player.get_money player in
+    let rent = Property.get_cost property in
+    let price = if balance < rent then balance else rent in
+    let new_player = Player.remove_money player price in
+    let new_owner = Player.add_money owner price in
+    let new_player =
+      if Player.get_money new_player > 0 then Player.empty else new_player
+    in
+    (new_player, new_owner)
+
+let land_on_prop property player p1 p2 p3 p4 = 
+  let property_owner = get_property_owner property p1 p2 p3 p4 in
+  match property_owner with
+  | Some x -> if x = player then (player, x) else pay_rent player x property
+  | None -> (buy_property player property, player)
+
 let rec game_loop (p1 : Player.t) (p2 : Player.t) (p3 : Player.t) (p4 : Player.t) turn =
+  Printf.printf "Player: %d" (turn mod 4);
   if not (check_players_left p1 p2 p3 p4) then () else
   let _ = Sys.command "clear" in
   print_info p1 p2 p3 p4;
@@ -116,7 +153,8 @@ let rec game_loop (p1 : Player.t) (p2 : Player.t) (p3 : Player.t) (p4 : Player.t
     if owns_property property p1 then game_loop p1 p2 p3 p4 (turn+1)
     else if owns_property property p2 then game_loop p1 (snd result) p3 p4 (turn+1)
     else if owns_property property p3 then game_loop p1 p2 (snd result) p4 (turn+1)
-    else game_loop p1 p2 p3 (snd result) (turn+1)
+    else if owns_property property p4 then game_loop p1 p2 p3 (snd result) (turn+1)
+    else game_loop p1 p2 p3 p4 (turn+1)
   else if turn mod 4 = 2 then
     if p2 = Player.empty then game_loop p1 p2 p3 p4 (turn+1) else
     if not (query_player p2) then game_loop p1 p2 p3 p4 (turn+1) else
@@ -127,7 +165,8 @@ let rec game_loop (p1 : Player.t) (p2 : Player.t) (p3 : Player.t) (p4 : Player.t
     if owns_property property p2 then game_loop p1 p2 p3 p4 (turn+1)
     else if owns_property property p1 then game_loop (snd result) p2 p3 p4 (turn+1)
     else if owns_property property p3 then game_loop p1 p2 (snd result) p4 (turn+1)
-    else game_loop p1 p2 p3 (snd result) (turn+1)
+    else if owns_property property p4 then game_loop p1 p2 p3 (snd result) (turn+1)
+    else game_loop p1 p2 p3 p4 (turn+1)
   else if turn mod 4 = 3 then
     if p3 = Player.empty then game_loop p1 p2 p3 p4 (turn+1) else
     if not (query_player p3) then game_loop p1 p2 p3 p4 (turn+1) else
@@ -138,7 +177,8 @@ let rec game_loop (p1 : Player.t) (p2 : Player.t) (p3 : Player.t) (p4 : Player.t
     if owns_property property p3 then game_loop p1 p2 p3 p4 (turn+1)
     else if owns_property property p1 then game_loop (snd result) p2 p3 p4 (turn+1)
     else if owns_property property p2 then game_loop p1 (snd result) p3 p4 (turn+1)
-    else game_loop p1 (fst result) p3 (snd result) (turn+1)
+    else if owns_property property p4 then game_loop p1 p2 p3 (snd result) (turn+1)
+    else game_loop p1 p2 p3 p4 (turn+1)
   else
     if p4 = Player.empty then game_loop p1 p2 p3 p4 (turn+1) else
     if not (query_player p4) then game_loop p1 p2 p3 p4 (turn+1) else
@@ -149,10 +189,15 @@ let rec game_loop (p1 : Player.t) (p2 : Player.t) (p3 : Player.t) (p4 : Player.t
     if owns_property property p4 then game_loop p1 p2 p3 p4 (turn+1)
     else if owns_property property p1 then game_loop (snd result) p2 p3 p4 (turn+1)
     else if owns_property property p2 then game_loop p1 (snd result) p3 p4 (turn+1)
-    else game_loop p1 p2 (snd result) p4 (turn+1)
+    else if owns_property property p3 then game_loop p1 p2 (snd result) p4 (turn+1)
+    else game_loop p1 p2 p3 p4 (turn+1)
 
 let run_game p1 p2 p3 p4 = game_loop p1 p2 p3 p4 1
 
+(** [game_loop p1 p2 p3 p4] creates the game loop where players are queried to
+    roll the dice. If they land on an unknowned property they are given the
+    option to buy the property. If the property is owned, they automatically pay
+    rent to the respective owner*)
 (* let rec game_loop (p1 : Player.t) (p2 : Player.t) (p3 : Player.t)
     (p4 : Player.t) =
   let _ = Sys.command "clear" in
@@ -176,6 +221,7 @@ let run_game p1 p2 p3 p4 = game_loop p1 p2 p3 p4 1
   in
 
   if (check_players_left p1 p2 p3 p4) then game_loop p1 p2 p3 p4 else () *)
+
 
 (** Begins game by asking player to type start*)
 let () =
