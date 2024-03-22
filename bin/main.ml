@@ -129,7 +129,7 @@ let pay_rent (player : Player.t) (owner : Player.t) (property : Property.t) =
   let new_player = Player.remove_money player price in
   let new_owner = Player.add_money owner price in
   let new_player =
-    if Player.get_money new_player > 0 then Player.empty else new_player
+    if Player.get_money new_player < 0 then Player.empty else new_player
   in
   (new_player, new_owner)
 
