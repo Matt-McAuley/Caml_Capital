@@ -212,25 +212,6 @@ let rec game_loop (p1 : Player.t) (p2 : Player.t) (p3 : Player.t)
 
 let run_game p1 p2 p3 p4 = game_loop p1 p2 p3 p4 1
 
-(** [game_loop p1 p2 p3 p4] creates the game loop where players are queried to
-    roll the dice. If they land on an unknowned property they are given the
-    option to buy the property. If the property is owned, they automatically pay
-    rent to the respective owner*)
-(* let rec game_loop (p1 : Player.t) (p2 : Player.t) (p3 : Player.t) (p4 :
-   Player.t) = let _ = Sys.command "clear" in print_info p1 p2 p3 p4; let p1 =
-   if p1 <> Player.empty && query_player p1 then let p1 = move_player_random p1
-   in let property = check_property_at_pos (Player.get_position p1) in let
-   result = land_on_prop property p1 p1 p2 p3 p4 in let p1 = fst result in if
-   owns_property property p1 then let p1 = snd result else if owns_property
-   property p2 then let p2 = snd result else if owns_property property p3 then
-   let p3 = snd result else let p4 = snd result in let p2 = if p2 <>
-   Player.empty && query_player p2 then move_player_random p2 else p2 in let p3
-   = if p3 <> Player.empty && query_player p3 then move_player_random p3 else p3
-   in let p4 = if p4 <> Player.empty && query_player p4 then move_player_random
-   p4 else p4 in
-
-   if (check_players_left p1 p2 p3 p4) then game_loop p1 p2 p3 p4 else () *)
-
 (** Begins game by asking player to type start*)
 let () =
   print_logo ();
