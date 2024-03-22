@@ -34,6 +34,7 @@ let print_info (p1 : Player.t) (p2 : Player.t) (p3 : Player.t) (p4 : Player.t) :
   let p2_info = player_info p2 in
   let p3_info = player_info p3 in
   let p4_info = player_info p4 in
+  print_endline "";
   print_endline p1_info;
   print_endline p2_info;
   print_endline p3_info;
@@ -49,12 +50,38 @@ let roll_dice () =
   let () = Random.self_init () in
   2 + Random.int 10
 
-(** [move_player_random player] is a [player] with position updated according to a 
-  random roll of two dice with values over 40 being truncated to fit on the board. *)
+(** [move_player_random player] is a [player] with position updated according to
+    a random roll of two dice with values over 40 being truncated to fit on the
+    board. *)
 let move_player_random (player : Player.t) =
   let dice_roll = roll_dice () in
   Printf.printf "%s moved %d spots \n" (Player.get_name player) dice_roll;
-  Player.(set_position player (((get_position player) + dice_roll) mod 40))
+  Player.(set_position player ((get_position player + dice_roll) mod 40))
+
+let query_player (player : Player.t) =
+  Printf.printf "%s, Roll the dice by pressing \"ENTER\": "
+    (Player.get_name player);
+  let the_input = read_line () in
+  the_input = ""
+
+let rec game_loop (p1 : Player.t) (p2 : Player.t) (p3 : Player.t)
+    (p4 : Player.t) =
+  let _ = Sys.command "clear" in
+  print_info p1 p2 p3 p4;
+  let p1 =
+    if p1 <> Player.empty && query_player p1 then move_player_random p1 else p1
+  in
+  let p2 =
+    if p2 <> Player.empty && query_player p2 then move_player_random p2 else p2
+  in
+  let p3 =
+    if p3 <> Player.empty && query_player p3 then move_player_random p3 else p3
+  in
+  let p4 =
+    if p4 <> Player.empty && query_player p4 then move_player_random p4 else p4
+  in
+
+  game_loop p1 p2 p3 p4
 
 (** Begins game by asking player to type start*)
 let () =
@@ -74,8 +101,6 @@ let () =
     (* Create player 3*)
     let () = print_string "Player4 type your name: " in
     let p4 = make_player () in
-    print_info p1 p2 p3 p4
+    let () = game_loop p1 p2 p3 p4 in
+    print_endline "Gameover"
   end
-
-(** [clear_terminal] clears all text from the terminal *)
-let clear_terminal () = Sys.command "clear"
