@@ -19,7 +19,7 @@ let print_logo () =
 (** [plist_to_str plist] converts the property list [plist] to a string. *)
 let plist_to_str (plist : Property.t list) =
   let lst = List.map (fun x -> Property.get_name x) plist in
-  "()" ^ String.concat ", " lst ^ ")"
+  "(" ^ String.concat ", " lst ^ ")"
 
 (** [player_info player] is the information of a [player] printed to the
     console. *)
@@ -30,11 +30,33 @@ let player_info player =
     let position = string_of_int (Player.get_position player) in
     let money = string_of_int (Player.get_money player) in
     let properties = plist_to_str (Player.get_properties player) in
-    Printf.sprintf "%-10s: Position: %-2s | Money: %-5s | Properties: %s" name
-      position money properties
+    let base_info =
+      Printf.sprintf "%-10s: Position: %-2s | Money: %-5s | Properties: " name
+        position money
+    in
+    let max_line_width = 80 in
+    (* or any width you prefer *)
+    if String.length base_info + String.length properties <= max_line_width then
+      base_info ^ properties
+    else
+      let rec split_and_format str =
+        if String.length str <= max_line_width then [ str ]
+        else
+          let part = String.sub str 0 max_line_width in
+          let rest =
+            String.sub str max_line_width (String.length str - max_line_width)
+          in
+          part :: split_and_format rest
+      in
+      let property_lines = split_and_format properties in
+      let formatted_properties =
+        String.concat
+          ("\n" ^ String.make (String.length base_info) ' ')
+          property_lines
+      in
+      base_info ^ formatted_properties
 
-(** [print_info p1 p2 p3 p4] prints the information of players 1-4 to the
-    console. *)
+(** Print info about each player. If the player is empty, print an empty string *)
 let print_info (p1 : Player.t) (p2 : Player.t) (p3 : Player.t) (p4 : Player.t) :
     unit =
   let p1_info = player_info p1 in
@@ -102,10 +124,10 @@ let owns_property prop player =
 let buy_property (player : Player.t) (property : Property.t) =
   let prop_name = Property.get_name property in
   let prop_cost = string_of_int (Property.get_cost property) in
-  Printf.printf "Press \"ENTER\" if you want to purchase %s for %s: " prop_name
+  Printf.printf "Press \"BUY\" if you want to purchase %s for %s: " prop_name
     prop_cost;
   let the_input = read_line () in
-  if the_input = "" then begin
+  if the_input = "BUY" then begin
     if Player.get_money player > Property.get_cost property then
       Player.add_property
         (Player.remove_money player (Property.get_cost property))
@@ -125,7 +147,7 @@ let buy_property (player : Player.t) (property : Property.t) =
 let pay_rent (player : Player.t) (owner : Player.t) (property : Property.t) =
   Printf.printf "%s landed on %s and owes %d to %s. " (Player.get_name player)
     (Property.get_name property)
-    (Property.get_cost property)
+    (Property.get_rent property)
     (Player.get_name owner);
   let balance = Player.get_money player in
   let rent = Property.get_cost property in
