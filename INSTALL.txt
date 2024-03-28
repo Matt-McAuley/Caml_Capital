@@ -1,0 +1,3 @@
+How to run our code:
+
+- In the terminal type: dune exec bin/main.exe
