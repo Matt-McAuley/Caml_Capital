@@ -1,5 +1,6 @@
 open Final_project
 open Temp_properties
+open Unix
 
 (** [print_logo] is the interface with the following format: Position on board:
     <users> Money for each player: <users> Properties owned: <users> printed to
@@ -158,10 +159,12 @@ let buy_property (player : Player.t) (property : Property.t) =
     sufficient funds. If [player] does not have enough money to cover rent, they
     pay their remaining money to [owner] and [player] is now bankrupt*)
 let pay_rent (player : Player.t) (owner : Player.t) (property : Property.t) =
-  Printf.printf "%s landed on %s and owes %d to %s. " (Player.get_name player)
+  Printf.printf "%s landed on %s and owes %d to %s. %!" (Player.get_name player)
     (Property.get_name property)
     (Property.get_rent property)
     (Player.get_name owner);
+  print_string "Press \"ENTER\" to continue: ";
+  let _ = read_line () in
   let balance = Player.get_money player in
   let rent = Property.get_cost property in
   let price = if balance < rent then balance else rent in
@@ -261,6 +264,9 @@ let run_game p1 p2 p3 p4 = game_loop p1 p2 p3 p4 1
 
 (** Begins game by asking player to type start*)
 let () =
+  (* Terminal.setup_term ();
+  Terminal.input_non_canonique_restart_unblocked ~when_unblocked:handle_key stdin;
+  Terminal.restore_term () *)
   print_logo ();
   let () =
     print_string
@@ -269,16 +275,16 @@ let () =
   let the_input = read_line () in
   if the_input = "" then begin
     (* Create player 1*)
-    let () = print_string "Player1 type your name: " in
+    let () = print_string "Player1 type your name or press enter to skip: " in
     let p1 = make_player () in
     (* Create player 2*)
-    let () = print_string "Player2 type your name: " in
+    let () = print_string "Player2 type your name or press enter to skip: " in
     let p2 = make_player () in
     (* Create player 3*)
-    let () = print_string "Player3 type your name: " in
+    let () = print_string "Player3 type your name or press enter to skip: " in
     let p3 = make_player () in
     (* Create player 3*)
-    let () = print_string "Player4 type your name: " in
+    let () = print_string "Player4 type your name or press enter to skip: " in
     let p4 = make_player () in
     let () = run_game p1 p2 p3 p4 in
     print_endline "Gameover"
