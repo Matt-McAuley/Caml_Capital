@@ -137,7 +137,7 @@ let owns_property prop player =
 let buy_property (player : Player.t) (property : Property.t) =
   let prop_name = Property.get_name property in
   let prop_cost = string_of_int (Property.get_cost property) in
-  Printf.printf "Press \"BUY\" if you want to purchase %s for %s: " prop_name
+  Printf.printf "Type \"BUY\" if you want to purchase %s for %s: " prop_name
     prop_cost;
   let the_input = read_line () in
   if the_input = "BUY" then begin
