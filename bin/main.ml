@@ -137,10 +137,10 @@ let owns_property prop player =
 let buy_property (player : Player.t) (property : Property.t) =
   let prop_name = Property.get_name property in
   let prop_cost = string_of_int (Property.get_cost property) in
-  Printf.printf "Type \"BUY\" if you want to purchase %s for %s: " prop_name
+  Printf.printf "Type \"b\" if you want to purchase %s for %s: " prop_name
     prop_cost;
   let the_input = read_line () in
-  if the_input = "BUY" then begin
+  if the_input = "b" then begin
     if Player.get_money player > Property.get_cost property then
       Player.add_property
         (Player.remove_money player (Property.get_cost property))
@@ -178,75 +178,84 @@ let land_on_prop property player p1 p2 p3 p4 =
   | Some x -> if x = player then (player, x) else pay_rent player x property
   | None -> (buy_property player property, player)
 
+let p1_turn p1 p2 p3 p4 turn game_loop =
+  if p1 = Player.empty then game_loop p1 p2 p3 p4 (turn + 1)
+  else if not (query_player p1) then game_loop p1 p2 p3 p4 (turn + 1)
+  else
+    let p1 = move_player_random p1 in
+    let property = check_property_at_pos (Player.get_position p1) in
+    let result = land_on_prop property p1 p1 p2 p3 p4 in
+    let p1 = fst result in
+    if owns_property property p1 then game_loop p1 p2 p3 p4 (turn + 1)
+    else if owns_property property p2 then
+      game_loop p1 (snd result) p3 p4 (turn + 1)
+    else if owns_property property p3 then
+      game_loop p1 p2 (snd result) p4 (turn + 1)
+    else if owns_property property p4 then
+      game_loop p1 p2 p3 (snd result) (turn + 1)
+    else game_loop p1 p2 p3 p4 (turn + 1)
+
+let p2_turn p1 p2 p3 p4 turn game_loop =
+  if p2 = Player.empty then game_loop p1 p2 p3 p4 (turn + 1)
+  else if not (query_player p2) then game_loop p1 p2 p3 p4 (turn + 1)
+  else
+    let p2 = move_player_random p2 in
+    let property = check_property_at_pos (Player.get_position p2) in
+    let result = land_on_prop property p2 p1 p2 p3 p4 in
+    let p2 = fst result in
+    if owns_property property p2 then game_loop p1 p2 p3 p4 (turn + 1)
+    else if owns_property property p1 then
+      game_loop (snd result) p2 p3 p4 (turn + 1)
+    else if owns_property property p3 then
+      game_loop p1 p2 (snd result) p4 (turn + 1)
+    else if owns_property property p4 then
+      game_loop p1 p2 p3 (snd result) (turn + 1)
+    else game_loop p1 p2 p3 p4 (turn + 1)
+
+let p3_turn p1 p2 p3 p4 turn game_loop =
+  if p3 = Player.empty then game_loop p1 p2 p3 p4 (turn + 1)
+  else if not (query_player p3) then game_loop p1 p2 p3 p4 (turn + 1)
+  else
+    let p3 = move_player_random p3 in
+    let property = check_property_at_pos (Player.get_position p3) in
+    let result = land_on_prop property p3 p1 p2 p3 p4 in
+    let p3 = fst result in
+    if owns_property property p3 then game_loop p1 p2 p3 p4 (turn + 1)
+    else if owns_property property p1 then
+      game_loop (snd result) p2 p3 p4 (turn + 1)
+    else if owns_property property p2 then
+      game_loop p1 (snd result) p3 p4 (turn + 1)
+    else if owns_property property p4 then
+      game_loop p1 p2 p3 (snd result) (turn + 1)
+    else game_loop p1 p2 p3 p4 (turn + 1)
+
+let p4_turn p1 p2 p3 p4 turn game_loop =
+  if p4 = Player.empty then game_loop p1 p2 p3 p4 (turn + 1)
+  else if not (query_player p4) then game_loop p1 p2 p3 p4 (turn + 1)
+  else
+  let p4 = move_player_random p4 in
+  let property = check_property_at_pos (Player.get_position p4) in
+  let result = land_on_prop property p4 p1 p2 p3 p4 in
+  let p4 = fst result in
+  if owns_property property p4 then game_loop p1 p2 p3 p4 (turn + 1)
+  else if owns_property property p1 then
+    game_loop (snd result) p2 p3 p4 (turn + 1)
+  else if owns_property property p2 then
+    game_loop p1 (snd result) p3 p4 (turn + 1)
+  else if owns_property property p3 then
+    game_loop p1 p2 (snd result) p4 (turn + 1)
+  else game_loop p1 p2 p3 p4 (turn + 1)
+
 let rec game_loop (p1 : Player.t) (p2 : Player.t) (p3 : Player.t)
     (p4 : Player.t) turn =
   if not (check_players_left p1 p2 p3 p4) then ()
   else
     let _ = Sys.command "clear" in
     print_info p1 p2 p3 p4;
-    if turn mod 4 = 1 then
-      if p1 = Player.empty then game_loop p1 p2 p3 p4 (turn + 1)
-      else if not (query_player p1) then game_loop p1 p2 p3 p4 (turn + 1)
-      else
-        let p1 = move_player_random p1 in
-        let property = check_property_at_pos (Player.get_position p1) in
-        let result = land_on_prop property p1 p1 p2 p3 p4 in
-        let p1 = fst result in
-        if owns_property property p1 then game_loop p1 p2 p3 p4 (turn + 1)
-        else if owns_property property p2 then
-          game_loop p1 (snd result) p3 p4 (turn + 1)
-        else if owns_property property p3 then
-          game_loop p1 p2 (snd result) p4 (turn + 1)
-        else if owns_property property p4 then
-          game_loop p1 p2 p3 (snd result) (turn + 1)
-        else game_loop p1 p2 p3 p4 (turn + 1)
-    else if turn mod 4 = 2 then
-      if p2 = Player.empty then game_loop p1 p2 p3 p4 (turn + 1)
-      else if not (query_player p2) then game_loop p1 p2 p3 p4 (turn + 1)
-      else
-        let p2 = move_player_random p2 in
-        let property = check_property_at_pos (Player.get_position p2) in
-        let result = land_on_prop property p2 p1 p2 p3 p4 in
-        let p2 = fst result in
-        if owns_property property p2 then game_loop p1 p2 p3 p4 (turn + 1)
-        else if owns_property property p1 then
-          game_loop (snd result) p2 p3 p4 (turn + 1)
-        else if owns_property property p3 then
-          game_loop p1 p2 (snd result) p4 (turn + 1)
-        else if owns_property property p4 then
-          game_loop p1 p2 p3 (snd result) (turn + 1)
-        else game_loop p1 p2 p3 p4 (turn + 1)
-    else if turn mod 4 = 3 then
-      if p3 = Player.empty then game_loop p1 p2 p3 p4 (turn + 1)
-      else if not (query_player p3) then game_loop p1 p2 p3 p4 (turn + 1)
-      else
-        let p3 = move_player_random p3 in
-        let property = check_property_at_pos (Player.get_position p3) in
-        let result = land_on_prop property p3 p1 p2 p3 p4 in
-        let p3 = fst result in
-        if owns_property property p3 then game_loop p1 p2 p3 p4 (turn + 1)
-        else if owns_property property p1 then
-          game_loop (snd result) p2 p3 p4 (turn + 1)
-        else if owns_property property p2 then
-          game_loop p1 (snd result) p3 p4 (turn + 1)
-        else if owns_property property p4 then
-          game_loop p1 p2 p3 (snd result) (turn + 1)
-        else game_loop p1 p2 p3 p4 (turn + 1)
-    else if p4 = Player.empty then game_loop p1 p2 p3 p4 (turn + 1)
-    else if not (query_player p4) then game_loop p1 p2 p3 p4 (turn + 1)
-    else
-      let p4 = move_player_random p4 in
-      let property = check_property_at_pos (Player.get_position p4) in
-      let result = land_on_prop property p4 p1 p2 p3 p4 in
-      let p4 = fst result in
-      if owns_property property p4 then game_loop p1 p2 p3 p4 (turn + 1)
-      else if owns_property property p1 then
-        game_loop (snd result) p2 p3 p4 (turn + 1)
-      else if owns_property property p2 then
-        game_loop p1 (snd result) p3 p4 (turn + 1)
-      else if owns_property property p3 then
-        game_loop p1 p2 (snd result) p4 (turn + 1)
-      else game_loop p1 p2 p3 p4 (turn + 1)
+    if turn mod 4 = 1 then p1_turn p1 p2 p3 p4 turn game_loop
+    else if turn mod 4 = 2 then p2_turn p1 p2 p3 p4 turn game_loop
+    else if turn mod 4 = 3 then p3_turn p1 p2 p3 p4 turn game_loop
+    else p4_turn p1 p2 p3 p4 turn game_loop
 
 let run_game p1 p2 p3 p4 = game_loop p1 p2 p3 p4 1
 
