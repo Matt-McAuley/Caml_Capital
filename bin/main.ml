@@ -166,7 +166,7 @@ let pay_rent (player : Player.t) (owner : Player.t) (property : Property.t) =
   print_string "Press \"ENTER\" to continue: ";
   let _ = read_line () in
   let balance = Player.get_money player in
-  let rent = Property.get_cost property in
+  let rent = Property.get_rent property in
   let price = if balance < rent then balance else rent in
   let new_player = Player.remove_money player price in
   let new_owner = Player.add_money owner price in
