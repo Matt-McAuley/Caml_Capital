@@ -16,6 +16,19 @@ let print_logo () =
   in
   print_file "data/interface.txt"
 
+(** [print_help] is the help menu that is printed when the user types "HELP"*)
+let print_help () =
+  let print_file filename =
+    let file = open_in filename in
+    try
+      while true do
+        let line = input_line file in
+        print_endline line
+      done
+    with End_of_file -> close_in file
+  in
+  print_file "data/help.txt"
+
 (** [plist_to_str plist] converts the property list [plist] to a string. *)
 let plist_to_str (plist : Property.t list) =
   let lst = List.map (fun x -> Property.get_name x) plist in
@@ -249,7 +262,10 @@ let run_game p1 p2 p3 p4 = game_loop p1 p2 p3 p4 1
 (** Begins game by asking player to type start*)
 let () =
   print_logo ();
-  let () = print_string "Press \"ENTER\" to begin the game: " in
+  let () =
+    print_string
+      "Type \"HELP\" for instructions or press \"ENTER\" to begin the game: "
+  in
   let the_input = read_line () in
   if the_input = "" then begin
     (* Create player 1*)
@@ -266,4 +282,8 @@ let () =
     let p4 = make_player () in
     let () = run_game p1 p2 p3 p4 in
     print_endline "Gameover"
+  end
+  else if the_input = "HELP" then begin
+    let _ = Sys.command "clear" in
+    print_help ()
   end
