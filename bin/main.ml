@@ -71,18 +71,38 @@ let player_info player =
       in
       base_info ^ formatted_properties
 
+(** [pretty_info_printer p] is a helper function that prints the base
+    information of player p on the terminal, using colors. *)
+let pretty_info_printer p =
+  let rec remove_last = function
+    | [] -> failwith "Cannot remove from empty list"
+    | _ :: [] -> []
+    | x :: xs -> x :: remove_last xs
+  in
+  let rec return_last = function
+    | [] -> failwith "empty list"
+    | h :: [] -> h
+    | _ :: t -> return_last t
+  in
+  let print_property_color prop =
+    print_string (Property.get_color prop) (Property.get_name prop ^ ", ")
+  in
+  let p_info = player_info p in
+  let p_info_lst = String.split_on_char '|' p_info in
+  print_string [] (String.concat "|" (remove_last p_info_lst));
+  print_string [] "|";
+  print_string [] (String.sub (return_last p_info_lst) 0 14);
+  List.iter print_property_color (Player.get_properties p);
+  print_string [] ")";
+  print_endline ""
+
 (** Print info about each player. If the player is empty, print an empty string *)
 let print_info (p1 : Player.t) (p2 : Player.t) (p3 : Player.t) (p4 : Player.t) :
     unit =
-  let p1_info = player_info p1 in
-  let p2_info = player_info p2 in
-  let p3_info = player_info p3 in
-  let p4_info = player_info p4 in
-  print_endline "";
-  print_endline p1_info;
-  print_endline p2_info;
-  print_endline p3_info;
-  print_endline p4_info
+  pretty_info_printer p1;
+  pretty_info_printer p2;
+  pretty_info_printer p3;
+  pretty_info_printer p4
 
 (** [make_player] makes a player with name according to user input. *)
 let make_player () : Player.t =
@@ -181,11 +201,16 @@ let pay_rent (player : Player.t) (owner : Player.t) (property : Property.t) =
 let land_on_prop property player p1 p2 p3 p4 =
   let property_owner = get_property_owner property p1 p2 p3 p4 in
   match property_owner with
-  | Some x -> if x = player then
-  let () = Printf.printf "You landed on your own property, %s, fhew!\n" (Property.get_name property) in
-  let () = Printf.printf "Press \"ENTER\" to continue: %!" in
-  let _ = read_line () in (player, x)
-  else pay_rent player x property
+  | Some x ->
+      if x = player then
+        let () =
+          Printf.printf "You landed on your own property, %s, fhew!\n"
+            (Property.get_name property)
+        in
+        let () = Printf.printf "Press \"ENTER\" to continue: %!" in
+        let _ = read_line () in
+        (player, x)
+      else pay_rent player x property
   | None -> (buy_property player property, player)
 
 let p1_turn p1 p2 p3 p4 turn game_loop =
