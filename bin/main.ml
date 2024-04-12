@@ -73,16 +73,19 @@ let player_info player =
 (** [pretty_info_printer p] is a helper function that prints the base
     information of player p on the terminal, using colors. *)
 let pretty_info_printer p =
+  (* helper to remove the last element of a list *)
   let rec remove_last = function
     | [] -> failwith "Cannot remove from empty list"
     | _ :: [] -> []
     | x :: xs -> x :: remove_last xs
   in
+  (* helper to return the last element of a list *)
   let rec return_last = function
     | [] -> failwith "empty list"
     | h :: [] -> h
     | _ :: t -> return_last t
   in
+  (* iterable printer to print each property with color *)
   let print_property_color prop =
     print_string (Property.get_color prop) (Property.get_name prop ^ ", ")
   in
@@ -208,7 +211,7 @@ let land_on_prop property player p1 p2 p3 p4 =
   | Some x ->
       if x = player then
         let () =
-          Printf.printf "You landed on your own property, %s, fhew!\n"
+          Printf.printf "You landed on your own property, %s, phew!\n"
             (Property.get_name property)
         in
         let () = Printf.printf "Press \"ENTER\" to continue: %!" in

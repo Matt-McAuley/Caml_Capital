@@ -17,7 +17,7 @@ let new_player_tests =
            assert_equal Player.(get_name new_player) "Bob" );
        ]
 
-let property_to_add = Property.create_property "prop" 1 1 1 [ default ]
+let property_to_add = Property.create_property "prop" 1 1 1 [ default ] 0
 
 let changed_player =
   Player.(
@@ -96,11 +96,11 @@ let empty_player_tests =
            assert_equal Player.(get_name empty_player) "" );
        ]
 
-let prop1 = Property.create_property "Prop 1" 1 100 20 [ cyan ]
-let prop2 = Property.create_property "Prop 2" 1 100 20 [ green ]
+let prop1 = Property.create_property "Prop 1" 1 100 20 [ cyan ] 0
+let prop2 = Property.create_property "Prop 2" 1 100 20 [ green ] 0
 
 let prop_extr =
-  Property.create_property "RRRRRRRR" 99999999999 0 9999 [ default ]
+  Property.create_property "RRRRRRRR" 99999999999 0 9999 [ default ] 0
 
 let test_property =
   "test suite for property"
