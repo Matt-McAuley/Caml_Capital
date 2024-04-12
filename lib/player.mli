@@ -38,6 +38,9 @@ val has_set : t -> ANSITerminal.style list -> bool
 (** [has_set player set_color] is whether or not the player has all the
     properties of that [set_color] color*)
 
+val has_any_set : t -> bool
+(** [has_any_set player] is whether or not the player has a set of any color*)
+
 val get_money : t -> int
 (** [get_properties player] is the amount of money owned by [player]. *)
 
