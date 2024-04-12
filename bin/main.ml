@@ -98,12 +98,12 @@ let roll_dice () =
     board. *)
 let move_player_random (player : Player.t) =
   let dice_roll = roll_dice () in
-  Printf.printf "%s moved %d spots \n" (Player.get_name player) dice_roll;
+  Printf.printf "%s moved %d spots \n%!" (Player.get_name player) dice_roll;
   Player.(set_position player ((get_position player + dice_roll) mod 22))
 
 (** [query_player player] queries the respective player to roll the dice *)
 let query_player (player : Player.t) =
-  Printf.printf "%s, Roll the dice by pressing \"ENTER\": "
+  Printf.printf "%s, Roll the dice by pressing \"ENTER\": %!"
     (Player.get_name player);
   let the_input = read_line () in
   the_input = ""
@@ -138,7 +138,7 @@ let owns_property prop player =
 let buy_property (player : Player.t) (property : Property.t) =
   let prop_name = Property.get_name property in
   let prop_cost = string_of_int (Property.get_cost property) in
-  Printf.printf "Type \"b\" if you want to purchase %s for %s: " prop_name
+  Printf.printf "Type \"b\" if you want to purchase %s for %s: %!" prop_name
     prop_cost;
   let the_input = read_line () in
   if the_input = "b" then begin
@@ -147,7 +147,9 @@ let buy_property (player : Player.t) (property : Property.t) =
         (Player.remove_money player (Property.get_cost property))
         property
     else begin
-      Printf.printf "Insufficient funds to purchase %s" prop_name;
+      Printf.printf "Insufficient funds to purchase %s%!" prop_name;
+      Printf.printf "Press \"ENTER\" to continue: %!";
+      let _ = read_line () in
       player
     end
   end
@@ -163,7 +165,7 @@ let pay_rent (player : Player.t) (owner : Player.t) (property : Property.t) =
     (Property.get_name property)
     (Property.get_rent property)
     (Player.get_name owner);
-  print_string "Press \"ENTER\" to continue: ";
+  Printf.printf "Press \"ENTER\" to continue: %!";
   let _ = read_line () in
   let balance = Player.get_money player in
   let rent = Property.get_rent property in
@@ -178,7 +180,11 @@ let pay_rent (player : Player.t) (owner : Player.t) (property : Property.t) =
 let land_on_prop property player p1 p2 p3 p4 =
   let property_owner = get_property_owner property p1 p2 p3 p4 in
   match property_owner with
-  | Some x -> if x = player then (player, x) else pay_rent player x property
+  | Some x -> if x = player then
+  let () = Printf.printf "You landed on your own property, %s, fhew!\n" (Property.get_name property) in
+  let () = Printf.printf "Press \"ENTER\" to continue: %!" in
+  let _ = read_line () in (player, x)
+  else pay_rent player x property
   | None -> (buy_property player property, player)
 
 let p1_turn p1 p2 p3 p4 turn game_loop =
