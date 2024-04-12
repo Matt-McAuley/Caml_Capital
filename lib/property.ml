@@ -3,7 +3,7 @@ type t = {
   pos : int;
   cost : int;
   rent : int;
-  color : string;
+  color : ANSITerminal.style list;
 }
 
 let get_name p = p.name

@@ -1,5 +1,7 @@
 open Final_project
 open Temp_properties
+open Unix
+open ANSITerminal
 
 (** [print_logo] is the interface with the following format: Position on board:
     <users> Money for each player: <users> Properties owned: <users> printed to
@@ -97,12 +99,12 @@ let roll_dice () =
     board. *)
 let move_player_random (player : Player.t) =
   let dice_roll = roll_dice () in
-  Printf.printf "%s moved %d spots \n" (Player.get_name player) dice_roll;
+  Printf.printf "%s moved %d spots \n%!" (Player.get_name player) dice_roll;
   Player.(set_position player ((get_position player + dice_roll) mod 22))
 
 (** [query_player player] queries the respective player to roll the dice *)
 let query_player (player : Player.t) =
-  Printf.printf "%s, Roll the dice by pressing \"ENTER\": "
+  Printf.printf "%s, Roll the dice by pressing \"ENTER\": %!"
     (Player.get_name player);
   let the_input = read_line () in
   the_input = ""
@@ -136,9 +138,11 @@ let owns_property prop player =
     funds to purchase [property] they are told so*)
 let buy_property (player : Player.t) (property : Property.t) =
   let prop_name = Property.get_name property in
+  let prop_color = Property.get_color property in
   let prop_cost = string_of_int (Property.get_cost property) in
-  Printf.printf "Type \"b\" if you want to purchase %s for %s: " prop_name
-    prop_cost;
+  ANSITerminal.(printf [] "Type \"b\" if you want to purchase ");
+  ANSITerminal.(printf prop_color "%s" prop_name);
+  ANSITerminal.(printf [] " for %s: " prop_cost);
   let the_input = read_line () in
   if the_input = "b" then begin
     if Player.get_money player > Property.get_cost property then
@@ -158,10 +162,12 @@ let buy_property (player : Player.t) (property : Property.t) =
     sufficient funds. If [player] does not have enough money to cover rent, they
     pay their remaining money to [owner] and [player] is now bankrupt*)
 let pay_rent (player : Player.t) (owner : Player.t) (property : Property.t) =
-  Printf.printf "%s landed on %s and owes %d to %s. " (Player.get_name player)
+  Printf.printf "%s landed on %s and owes %d to %s. %!" (Player.get_name player)
     (Property.get_name property)
     (Property.get_rent property)
     (Player.get_name owner);
+  print_string [] "Press \"ENTER\" to continue: ";
+  let _ = read_line () in
   let balance = Player.get_money player in
   let rent = Property.get_rent property in
   let price = if balance < rent then balance else rent in
@@ -175,7 +181,11 @@ let pay_rent (player : Player.t) (owner : Player.t) (property : Property.t) =
 let land_on_prop property player p1 p2 p3 p4 =
   let property_owner = get_property_owner property p1 p2 p3 p4 in
   match property_owner with
-  | Some x -> if x = player then (player, x) else pay_rent player x property
+  | Some x -> if x = player then
+  let () = Printf.printf "You landed on your own property, %s, fhew!\n" (Property.get_name property) in
+  let () = Printf.printf "Press \"ENTER\" to continue: %!" in
+  let _ = read_line () in (player, x)
+  else pay_rent player x property
   | None -> (buy_property player property, player)
 
 let p1_turn p1 p2 p3 p4 turn game_loop =
@@ -233,18 +243,18 @@ let p4_turn p1 p2 p3 p4 turn game_loop =
   if p4 = Player.empty then game_loop p1 p2 p3 p4 (turn + 1)
   else if not (query_player p4) then game_loop p1 p2 p3 p4 (turn + 1)
   else
-  let p4 = move_player_random p4 in
-  let property = check_property_at_pos (Player.get_position p4) in
-  let result = land_on_prop property p4 p1 p2 p3 p4 in
-  let p4 = fst result in
-  if owns_property property p4 then game_loop p1 p2 p3 p4 (turn + 1)
-  else if owns_property property p1 then
-    game_loop (snd result) p2 p3 p4 (turn + 1)
-  else if owns_property property p2 then
-    game_loop p1 (snd result) p3 p4 (turn + 1)
-  else if owns_property property p3 then
-    game_loop p1 p2 (snd result) p4 (turn + 1)
-  else game_loop p1 p2 p3 p4 (turn + 1)
+    let p4 = move_player_random p4 in
+    let property = check_property_at_pos (Player.get_position p4) in
+    let result = land_on_prop property p4 p1 p2 p3 p4 in
+    let p4 = fst result in
+    if owns_property property p4 then game_loop p1 p2 p3 p4 (turn + 1)
+    else if owns_property property p1 then
+      game_loop (snd result) p2 p3 p4 (turn + 1)
+    else if owns_property property p2 then
+      game_loop p1 (snd result) p3 p4 (turn + 1)
+    else if owns_property property p3 then
+      game_loop p1 p2 (snd result) p4 (turn + 1)
+    else game_loop p1 p2 p3 p4 (turn + 1)
 
 let rec game_loop (p1 : Player.t) (p2 : Player.t) (p3 : Player.t)
     (p4 : Player.t) turn =
@@ -261,24 +271,23 @@ let run_game p1 p2 p3 p4 = game_loop p1 p2 p3 p4 1
 
 (** Begins game by asking player to type start*)
 let () =
+  (* Terminal.setup_term (); Terminal.input_non_canonique_restart_unblocked
+     ~when_unblocked:handle_key stdin; Terminal.restore_term () *)
   print_logo ();
-  let () =
-    print_string
-      "Type \"HELP\" for instructions or press \"ENTER\" to begin the game: "
-  in
+  let () = print_string [] "Press \"ENTER\" to begin the game: " in
   let the_input = read_line () in
   if the_input = "" then begin
     (* Create player 1*)
-    let () = print_string "Player1 type your name: " in
+    let () = print_string [] "Player1 type your name: " in
     let p1 = make_player () in
     (* Create player 2*)
-    let () = print_string "Player2 type your name: " in
+    let () = print_string [] "Player2 type your name: " in
     let p2 = make_player () in
     (* Create player 3*)
-    let () = print_string "Player3 type your name: " in
+    let () = print_string [] "Player3 type your name: " in
     let p3 = make_player () in
     (* Create player 3*)
-    let () = print_string "Player4 type your name: " in
+    let () = print_string [] "Player4 type your name: " in
     let p4 = make_player () in
     let () = run_game p1 p2 p3 p4 in
     print_endline "Gameover"
