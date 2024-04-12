@@ -140,7 +140,7 @@ let buy_property (player : Player.t) (property : Property.t) =
   let prop_name = Property.get_name property in
   let prop_color = Property.get_color property in
   let prop_cost = string_of_int (Property.get_cost property) in
-  ANSITerminal.(printf [] "Type \"BUY\" if you want to purchase ");
+  ANSITerminal.(printf [] "Type \"b\" if you want to purchase ");
   ANSITerminal.(printf prop_color "%s" prop_name);
   ANSITerminal.(printf [] " for %s: " prop_cost);
   let the_input = read_line () in
@@ -162,12 +162,11 @@ let buy_property (player : Player.t) (property : Property.t) =
     sufficient funds. If [player] does not have enough money to cover rent, they
     pay their remaining money to [owner] and [player] is now bankrupt*)
 let pay_rent (player : Player.t) (owner : Player.t) (property : Property.t) =
-  Printf.sprintf "%s landed on %s and owes %d to %s. %!"
-    (Player.get_name player)
+  Printf.printf "%s landed on %s and owes %d to %s. %!" (Player.get_name player)
     (Property.get_name property)
     (Property.get_rent property)
     (Player.get_name owner);
-  Printf.printf "Press \"ENTER\" to continue: %!";
+  print_string [] "Press \"ENTER\" to continue: ";
   let _ = read_line () in
   let balance = Player.get_money player in
   let rent = Property.get_rent property in
@@ -275,20 +274,20 @@ let () =
   (* Terminal.setup_term (); Terminal.input_non_canonique_restart_unblocked
      ~when_unblocked:handle_key stdin; Terminal.restore_term () *)
   print_logo ();
-  let () = print_string "Press \"ENTER\" to begin the game: " in
+  let () = print_string [] "Press \"ENTER\" to begin the game: " in
   let the_input = read_line () in
   if the_input = "" then begin
     (* Create player 1*)
-    let () = print_string "Player1 type your name: " in
+    let () = print_string [] "Player1 type your name: " in
     let p1 = make_player () in
     (* Create player 2*)
-    let () = print_string "Player2 type your name: " in
+    let () = print_string [] "Player2 type your name: " in
     let p2 = make_player () in
     (* Create player 3*)
-    let () = print_string "Player3 type your name: " in
+    let () = print_string [] "Player3 type your name: " in
     let p3 = make_player () in
     (* Create player 3*)
-    let () = print_string "Player4 type your name: " in
+    let () = print_string [] "Player4 type your name: " in
     let p4 = make_player () in
     let () = run_game p1 p2 p3 p4 in
     print_endline "Gameover"
