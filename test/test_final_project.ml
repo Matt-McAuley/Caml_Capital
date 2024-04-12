@@ -1,5 +1,6 @@
 open OUnit2
 open Final_project
+open ANSITerminal
 
 let new_player = Player.create_player "Bob"
 
@@ -16,7 +17,7 @@ let new_player_tests =
            assert_equal Player.(get_name new_player) "Bob" );
        ]
 
-let property_to_add = Property.create_property "prop" 1 1 1 "none"
+let property_to_add = Property.create_property "prop" 1 1 1 [ default ]
 
 let changed_player =
   Player.(
@@ -95,9 +96,11 @@ let empty_player_tests =
            assert_equal Player.(get_name empty_player) "" );
        ]
 
-let prop1 = Property.create_property "Prop 1" 1 100 20 "light_blue"
-let prop2 = Property.create_property "Prop 2" 1 100 20 "green"
-let prop_extr = Property.create_property "RRRRRRRR" 99999999999 0 9999 "none"
+let prop1 = Property.create_property "Prop 1" 1 100 20 [ cyan ]
+let prop2 = Property.create_property "Prop 2" 1 100 20 [ green ]
+
+let prop_extr =
+  Property.create_property "RRRRRRRR" 99999999999 0 9999 [ default ]
 
 let test_property =
   "test suite for property"
@@ -114,7 +117,7 @@ let test_property =
          ( "get_rent extr" >:: fun _ ->
            assert_equal 9999 (Property.get_rent prop_extr) );
          ( "get_color" >:: fun _ ->
-           assert_equal "light_blue" (Property.get_color prop1) );
+           assert_equal [ cyan ] (Property.get_color prop1) );
          ("( = )" >:: fun _ -> assert_equal false Property.(prop1 = prop2));
          ("( = )" >:: fun _ -> assert_equal true Property.(prop1 = prop1));
        ]
