@@ -182,11 +182,16 @@ let land_on_prop property player p1 p2 p3 p4 =
   let property_owner = get_property_owner property p1 p2 p3 p4 in
   match property_owner with
   | Some x -> if x = player then
-  let () = Printf.printf "You landed on your own property, %s, fhew!\n" (Property.get_name property) in
+  let () = Printf.printf "You landed on your own property, %s, phew!\n" (Property.get_name property) in
   let () = Printf.printf "Press \"ENTER\" to continue: %!" in
   let _ = read_line () in (player, x)
   else pay_rent player x property
   | None -> (buy_property player property, player)
+
+let land_on_go p1 p2 p3 p4 turn game_loop =
+  Printf.printf "You landed on GO, take a break!\n";
+  Printf.printf "Press \"ENTER\" to continue: %!";
+  let _ = read_line () in game_loop p1 p2 p3 p4 (turn+1)
 
 let p1_turn p1 p2 p3 p4 turn game_loop =
   if p1 = Player.empty then game_loop p1 p2 p3 p4 (turn + 1)
@@ -194,6 +199,8 @@ let p1_turn p1 p2 p3 p4 turn game_loop =
   else
     let p1 = move_player_random p1 in
     let property = check_property_at_pos (Player.get_position p1) in
+    if (Property.get_name property) = "GO!" then land_on_go p1 p2 p3 p4 turn game_loop
+    else
     let result = land_on_prop property p1 p1 p2 p3 p4 in
     let p1 = fst result in
     if owns_property property p1 then game_loop p1 p2 p3 p4 (turn + 1)
@@ -211,6 +218,8 @@ let p2_turn p1 p2 p3 p4 turn game_loop =
   else
     let p2 = move_player_random p2 in
     let property = check_property_at_pos (Player.get_position p2) in
+    if (Property.get_name property) = "GO!" then land_on_go p1 p2 p3 p4 turn game_loop
+    else
     let result = land_on_prop property p2 p1 p2 p3 p4 in
     let p2 = fst result in
     if owns_property property p2 then game_loop p1 p2 p3 p4 (turn + 1)
@@ -228,6 +237,8 @@ let p3_turn p1 p2 p3 p4 turn game_loop =
   else
     let p3 = move_player_random p3 in
     let property = check_property_at_pos (Player.get_position p3) in
+    if (Property.get_name property) = "GO!" then land_on_go p1 p2 p3 p4 turn game_loop
+    else
     let result = land_on_prop property p3 p1 p2 p3 p4 in
     let p3 = fst result in
     if owns_property property p3 then game_loop p1 p2 p3 p4 (turn + 1)
@@ -245,6 +256,8 @@ let p4_turn p1 p2 p3 p4 turn game_loop =
   else
     let p4 = move_player_random p4 in
     let property = check_property_at_pos (Player.get_position p4) in
+    if (Property.get_name property) = "GO!" then land_on_go p1 p2 p3 p4 turn game_loop
+    else
     let result = land_on_prop property p4 p1 p2 p3 p4 in
     let p4 = fst result in
     if owns_property property p4 then game_loop p1 p2 p3 p4 (turn + 1)
