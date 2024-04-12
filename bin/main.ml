@@ -1,6 +1,5 @@
 open Final_project
 open Temp_properties
-open Unix
 open ANSITerminal
 
 (** [print_logo] is the interface with the following format: Position on board:
@@ -181,11 +180,16 @@ let pay_rent (player : Player.t) (owner : Player.t) (property : Property.t) =
 let land_on_prop property player p1 p2 p3 p4 =
   let property_owner = get_property_owner property p1 p2 p3 p4 in
   match property_owner with
-  | Some x -> if x = player then
-  let () = Printf.printf "You landed on your own property, %s, fhew!\n" (Property.get_name property) in
-  let () = Printf.printf "Press \"ENTER\" to continue: %!" in
-  let _ = read_line () in (player, x)
-  else pay_rent player x property
+  | Some x ->
+      if x = player then
+        let () =
+          Printf.printf "You landed on your own property, %s, fhew!\n"
+            (Property.get_name property)
+        in
+        let () = Printf.printf "Press \"ENTER\" to continue: %!" in
+        let _ = read_line () in
+        (player, x)
+      else pay_rent player x property
   | None -> (buy_property player property, player)
 
 let p1_turn p1 p2 p3 p4 turn game_loop =

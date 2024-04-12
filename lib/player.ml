@@ -49,13 +49,14 @@ let remove_property player property =
   }
 
 let has_set player set_color : bool =
+  let open ANSITerminal in
   let property_list = get_properties player in
   let properties_of_color =
     List.filter
       (fun property -> Property.get_color property = set_color)
       property_list
   in
-  if set_color = "brown" || set_color = "dark_blue" then
+  if set_color = [ yellow; on_red ] || set_color = [ blue ] then
     List.length properties_of_color = 2
   else List.length properties_of_color = 3
 

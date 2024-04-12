@@ -34,7 +34,7 @@ val remove_property : t -> Property.t -> t
 (** [add_property player property] is a player with the fields of [player] but
     with [property] removed from their properties. *)
 
-val has_set : t -> string -> bool
+val has_set : t -> ANSITerminal.style list -> bool
 (** [has_set player set_color] is whether or not the player has all the
     properties of that [set_color] color*)
 
