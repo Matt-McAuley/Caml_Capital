@@ -1,5 +1,6 @@
 open Final_project
 open Temp_properties
+open Unix
 open ANSITerminal
 
 (** [print_logo] is the interface with the following format: Position on board:
@@ -16,6 +17,19 @@ let print_logo () =
     with End_of_file -> close_in file
   in
   print_file "data/interface.txt"
+
+(** [print_help] is the help menu that is printed when the user types "HELP"*)
+let print_help () =
+  let print_file filename =
+    let file = open_in filename in
+    try
+      while true do
+        let line = input_line file in
+        print_endline line
+      done
+    with End_of_file -> close_in file
+  in
+  print_file "data/help.txt"
 
 (** [plist_to_str plist] converts the property list [plist] to a string. *)
 let plist_to_str (plist : Property.t list) =
@@ -130,7 +144,7 @@ let buy_property (player : Player.t) (property : Property.t) =
   ANSITerminal.(printf prop_color "%s" prop_name);
   ANSITerminal.(printf [] " for %s: " prop_cost);
   let the_input = read_line () in
-  if the_input = "BUY" then begin
+  if the_input = "b" then begin
     if Player.get_money player > Property.get_cost property then
       Player.add_property
         (Player.remove_money player (Property.get_cost property))
@@ -149,12 +163,15 @@ let buy_property (player : Player.t) (property : Property.t) =
     sufficient funds. If [player] does not have enough money to cover rent, they
     pay their remaining money to [owner] and [player] is now bankrupt*)
 let pay_rent (player : Player.t) (owner : Player.t) (property : Property.t) =
-  Printf.printf "%s landed on %s and owes %d to %s. " (Player.get_name player)
+  Printf.sprintf "%s landed on %s and owes %d to %s. %!"
+    (Player.get_name player)
     (Property.get_name property)
     (Property.get_rent property)
     (Player.get_name owner);
+  print_string "Press \"ENTER\" to continue: ";
+  let _ = read_line () in
   let balance = Player.get_money player in
-  let rent = Property.get_cost property in
+  let rent = Property.get_rent property in
   let price = if balance < rent then balance else rent in
   let new_player = Player.remove_money player price in
   let new_owner = Player.add_money owner price in
@@ -169,96 +186,111 @@ let land_on_prop property player p1 p2 p3 p4 =
   | Some x -> if x = player then (player, x) else pay_rent player x property
   | None -> (buy_property player property, player)
 
+let p1_turn p1 p2 p3 p4 turn game_loop =
+  if p1 = Player.empty then game_loop p1 p2 p3 p4 (turn + 1)
+  else if not (query_player p1) then game_loop p1 p2 p3 p4 (turn + 1)
+  else
+    let p1 = move_player_random p1 in
+    let property = check_property_at_pos (Player.get_position p1) in
+    let result = land_on_prop property p1 p1 p2 p3 p4 in
+    let p1 = fst result in
+    if owns_property property p1 then game_loop p1 p2 p3 p4 (turn + 1)
+    else if owns_property property p2 then
+      game_loop p1 (snd result) p3 p4 (turn + 1)
+    else if owns_property property p3 then
+      game_loop p1 p2 (snd result) p4 (turn + 1)
+    else if owns_property property p4 then
+      game_loop p1 p2 p3 (snd result) (turn + 1)
+    else game_loop p1 p2 p3 p4 (turn + 1)
+
+let p2_turn p1 p2 p3 p4 turn game_loop =
+  if p2 = Player.empty then game_loop p1 p2 p3 p4 (turn + 1)
+  else if not (query_player p2) then game_loop p1 p2 p3 p4 (turn + 1)
+  else
+    let p2 = move_player_random p2 in
+    let property = check_property_at_pos (Player.get_position p2) in
+    let result = land_on_prop property p2 p1 p2 p3 p4 in
+    let p2 = fst result in
+    if owns_property property p2 then game_loop p1 p2 p3 p4 (turn + 1)
+    else if owns_property property p1 then
+      game_loop (snd result) p2 p3 p4 (turn + 1)
+    else if owns_property property p3 then
+      game_loop p1 p2 (snd result) p4 (turn + 1)
+    else if owns_property property p4 then
+      game_loop p1 p2 p3 (snd result) (turn + 1)
+    else game_loop p1 p2 p3 p4 (turn + 1)
+
+let p3_turn p1 p2 p3 p4 turn game_loop =
+  if p3 = Player.empty then game_loop p1 p2 p3 p4 (turn + 1)
+  else if not (query_player p3) then game_loop p1 p2 p3 p4 (turn + 1)
+  else
+    let p3 = move_player_random p3 in
+    let property = check_property_at_pos (Player.get_position p3) in
+    let result = land_on_prop property p3 p1 p2 p3 p4 in
+    let p3 = fst result in
+    if owns_property property p3 then game_loop p1 p2 p3 p4 (turn + 1)
+    else if owns_property property p1 then
+      game_loop (snd result) p2 p3 p4 (turn + 1)
+    else if owns_property property p2 then
+      game_loop p1 (snd result) p3 p4 (turn + 1)
+    else if owns_property property p4 then
+      game_loop p1 p2 p3 (snd result) (turn + 1)
+    else game_loop p1 p2 p3 p4 (turn + 1)
+
+let p4_turn p1 p2 p3 p4 turn game_loop =
+  if p4 = Player.empty then game_loop p1 p2 p3 p4 (turn + 1)
+  else if not (query_player p4) then game_loop p1 p2 p3 p4 (turn + 1)
+  else
+    let p4 = move_player_random p4 in
+    let property = check_property_at_pos (Player.get_position p4) in
+    let result = land_on_prop property p4 p1 p2 p3 p4 in
+    let p4 = fst result in
+    if owns_property property p4 then game_loop p1 p2 p3 p4 (turn + 1)
+    else if owns_property property p1 then
+      game_loop (snd result) p2 p3 p4 (turn + 1)
+    else if owns_property property p2 then
+      game_loop p1 (snd result) p3 p4 (turn + 1)
+    else if owns_property property p3 then
+      game_loop p1 p2 (snd result) p4 (turn + 1)
+    else game_loop p1 p2 p3 p4 (turn + 1)
+
 let rec game_loop (p1 : Player.t) (p2 : Player.t) (p3 : Player.t)
     (p4 : Player.t) turn =
   if not (check_players_left p1 p2 p3 p4) then ()
   else
     let _ = Sys.command "clear" in
     print_info p1 p2 p3 p4;
-    if turn mod 4 = 1 then
-      if p1 = Player.empty then game_loop p1 p2 p3 p4 (turn + 1)
-      else if not (query_player p1) then game_loop p1 p2 p3 p4 (turn + 1)
-      else
-        let p1 = move_player_random p1 in
-        let property = check_property_at_pos (Player.get_position p1) in
-        let result = land_on_prop property p1 p1 p2 p3 p4 in
-        let p1 = fst result in
-        if owns_property property p1 then game_loop p1 p2 p3 p4 (turn + 1)
-        else if owns_property property p2 then
-          game_loop p1 (snd result) p3 p4 (turn + 1)
-        else if owns_property property p3 then
-          game_loop p1 p2 (snd result) p4 (turn + 1)
-        else if owns_property property p4 then
-          game_loop p1 p2 p3 (snd result) (turn + 1)
-        else game_loop p1 p2 p3 p4 (turn + 1)
-    else if turn mod 4 = 2 then
-      if p2 = Player.empty then game_loop p1 p2 p3 p4 (turn + 1)
-      else if not (query_player p2) then game_loop p1 p2 p3 p4 (turn + 1)
-      else
-        let p2 = move_player_random p2 in
-        let property = check_property_at_pos (Player.get_position p2) in
-        let result = land_on_prop property p2 p1 p2 p3 p4 in
-        let p2 = fst result in
-        if owns_property property p2 then game_loop p1 p2 p3 p4 (turn + 1)
-        else if owns_property property p1 then
-          game_loop (snd result) p2 p3 p4 (turn + 1)
-        else if owns_property property p3 then
-          game_loop p1 p2 (snd result) p4 (turn + 1)
-        else if owns_property property p4 then
-          game_loop p1 p2 p3 (snd result) (turn + 1)
-        else game_loop p1 p2 p3 p4 (turn + 1)
-    else if turn mod 4 = 3 then
-      if p3 = Player.empty then game_loop p1 p2 p3 p4 (turn + 1)
-      else if not (query_player p3) then game_loop p1 p2 p3 p4 (turn + 1)
-      else
-        let p3 = move_player_random p3 in
-        let property = check_property_at_pos (Player.get_position p3) in
-        let result = land_on_prop property p3 p1 p2 p3 p4 in
-        let p3 = fst result in
-        if owns_property property p3 then game_loop p1 p2 p3 p4 (turn + 1)
-        else if owns_property property p1 then
-          game_loop (snd result) p2 p3 p4 (turn + 1)
-        else if owns_property property p2 then
-          game_loop p1 (snd result) p3 p4 (turn + 1)
-        else if owns_property property p4 then
-          game_loop p1 p2 p3 (snd result) (turn + 1)
-        else game_loop p1 p2 p3 p4 (turn + 1)
-    else if p4 = Player.empty then game_loop p1 p2 p3 p4 (turn + 1)
-    else if not (query_player p4) then game_loop p1 p2 p3 p4 (turn + 1)
-    else
-      let p4 = move_player_random p4 in
-      let property = check_property_at_pos (Player.get_position p4) in
-      let result = land_on_prop property p4 p1 p2 p3 p4 in
-      let p4 = fst result in
-      if owns_property property p4 then game_loop p1 p2 p3 p4 (turn + 1)
-      else if owns_property property p1 then
-        game_loop (snd result) p2 p3 p4 (turn + 1)
-      else if owns_property property p2 then
-        game_loop p1 (snd result) p3 p4 (turn + 1)
-      else if owns_property property p3 then
-        game_loop p1 p2 (snd result) p4 (turn + 1)
-      else game_loop p1 p2 p3 p4 (turn + 1)
+    if turn mod 4 = 1 then p1_turn p1 p2 p3 p4 turn game_loop
+    else if turn mod 4 = 2 then p2_turn p1 p2 p3 p4 turn game_loop
+    else if turn mod 4 = 3 then p3_turn p1 p2 p3 p4 turn game_loop
+    else p4_turn p1 p2 p3 p4 turn game_loop
 
 let run_game p1 p2 p3 p4 = game_loop p1 p2 p3 p4 1
 
 (** Begins game by asking player to type start*)
 let () =
+  (* Terminal.setup_term (); Terminal.input_non_canonique_restart_unblocked
+     ~when_unblocked:handle_key stdin; Terminal.restore_term () *)
   print_logo ();
-  let () = print_string [ default ] "Press \"ENTER\" to begin the game: " in
+  let () = print_string "Press \"ENTER\" to begin the game: " in
   let the_input = read_line () in
   if the_input = "" then begin
     (* Create player 1*)
-    let () = print_string [ default ] "Player1 type your name: " in
+    let () = print_string "Player1 type your name: " in
     let p1 = make_player () in
     (* Create player 2*)
-    let () = print_string [ default ] "Player2 type your name: " in
+    let () = print_string "Player2 type your name: " in
     let p2 = make_player () in
     (* Create player 3*)
-    let () = print_string [ default ] "Player3 type your name: " in
+    let () = print_string "Player3 type your name: " in
     let p3 = make_player () in
     (* Create player 3*)
-    let () = print_string [ default ] "Player4 type your name: " in
+    let () = print_string "Player4 type your name: " in
     let p4 = make_player () in
     let () = run_game p1 p2 p3 p4 in
     print_endline "Gameover"
+  end
+  else if the_input = "HELP" then begin
+    let _ = Sys.command "clear" in
+    print_help ()
   end
