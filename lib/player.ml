@@ -48,6 +48,18 @@ let remove_property player property =
     money = player.money;
   }
 
+let has_set player set_color : bool =
+  let open ANSITerminal in
+  let property_list = get_properties player in
+  let properties_of_color =
+    List.filter
+      (fun property -> Property.get_color property = set_color)
+      property_list
+  in
+  if set_color = [ yellow; on_red ] || set_color = [ blue ] then
+    List.length properties_of_color = 2
+  else List.length properties_of_color = 3
+
 let get_money player = player.money
 
 let add_money player money =
