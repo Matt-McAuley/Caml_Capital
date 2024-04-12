@@ -1,5 +1,6 @@
 open Final_project
 open Temp_properties
+open ANSITerminal
 
 (** [print_logo] is the interface with the following format: Position on board:
     <users> Money for each player: <users> Properties owned: <users> printed to
@@ -123,9 +124,11 @@ let owns_property prop player =
     funds to purchase [property] they are told so*)
 let buy_property (player : Player.t) (property : Property.t) =
   let prop_name = Property.get_name property in
+  let prop_color = Property.get_color property in
   let prop_cost = string_of_int (Property.get_cost property) in
-  Printf.printf "Type \"BUY\" if you want to purchase %s for %s: " prop_name
-    prop_cost;
+  ANSITerminal.(printf [] "Type \"BUY\" if you want to purchase ");
+  ANSITerminal.(printf prop_color "%s" prop_name);
+  ANSITerminal.(printf [] " for %s: " prop_cost);
   let the_input = read_line () in
   if the_input = "BUY" then begin
     if Player.get_money player > Property.get_cost property then
@@ -133,7 +136,8 @@ let buy_property (player : Player.t) (property : Property.t) =
         (Player.remove_money player (Property.get_cost property))
         property
     else begin
-      Printf.printf "Insufficient funds to purchase %s" prop_name;
+      ANSITerminal.(printf [] "Insufficient funds to purchase ");
+      ANSITerminal.(printf prop_color "%s" prop_name);
       player
     end
   end
@@ -240,20 +244,20 @@ let run_game p1 p2 p3 p4 = game_loop p1 p2 p3 p4 1
 (** Begins game by asking player to type start*)
 let () =
   print_logo ();
-  let () = print_string "Press \"ENTER\" to begin the game: " in
+  let () = print_string [ default ] "Press \"ENTER\" to begin the game: " in
   let the_input = read_line () in
   if the_input = "" then begin
     (* Create player 1*)
-    let () = print_string "Player1 type your name: " in
+    let () = print_string [ default ] "Player1 type your name: " in
     let p1 = make_player () in
     (* Create player 2*)
-    let () = print_string "Player2 type your name: " in
+    let () = print_string [ default ] "Player2 type your name: " in
     let p2 = make_player () in
     (* Create player 3*)
-    let () = print_string "Player3 type your name: " in
+    let () = print_string [ default ] "Player3 type your name: " in
     let p3 = make_player () in
     (* Create player 3*)
-    let () = print_string "Player4 type your name: " in
+    let () = print_string [ default ] "Player4 type your name: " in
     let p4 = make_player () in
     let () = run_game p1 p2 p3 p4 in
     print_endline "Gameover"
