@@ -233,6 +233,7 @@ let p1_turn p1 p2 p3 p4 turn game_loop =
     let p1 = move_player_random p1 in
     let property = check_property_at_pos (Player.get_position p1) in
     if Property.get_name property = "GO!" then
+      let p1 = Player.add_money p1 200 in
       land_on_go p1 p2 p3 p4 turn game_loop
     else
       let result = land_on_prop property p1 p1 p2 p3 p4 in
@@ -253,6 +254,7 @@ let p2_turn p1 p2 p3 p4 turn game_loop =
     let p2 = move_player_random p2 in
     let property = check_property_at_pos (Player.get_position p2) in
     if Property.get_name property = "GO!" then
+      let p2 = Player.add_money p2 200 in
       land_on_go p1 p2 p3 p4 turn game_loop
     else
       let result = land_on_prop property p2 p1 p2 p3 p4 in
@@ -273,6 +275,7 @@ let p3_turn p1 p2 p3 p4 turn game_loop =
     let p3 = move_player_random p3 in
     let property = check_property_at_pos (Player.get_position p3) in
     if Property.get_name property = "GO!" then
+      let p3 = Player.add_money p3 200 in
       land_on_go p1 p2 p3 p4 turn game_loop
     else
       let result = land_on_prop property p3 p1 p2 p3 p4 in
@@ -293,6 +296,7 @@ let p4_turn p1 p2 p3 p4 turn game_loop =
     let p4 = move_player_random p4 in
     let property = check_property_at_pos (Player.get_position p4) in
     if Property.get_name property = "GO!" then
+      let p4 = Player.add_money p4 200 in
       land_on_go p1 p2 p3 p4 turn game_loop
     else
       let result = land_on_prop property p4 p1 p2 p3 p4 in
