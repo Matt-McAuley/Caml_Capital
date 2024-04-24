@@ -12,12 +12,6 @@ type t = {
   hotel_rent : int;
   mortgage : int;
   level : int ref;
-  rent_1h : int;
-  rent_2h : int;
-  rent_3h : int;
-  rent_4h : int;
-  rent_hot : int;
-  mortgage : int;
 }
 
 let get_name p = p.name
