@@ -20,6 +20,18 @@ val ( = ) : t -> t -> bool
     Two properties are the same property if they have the same name. *)
 
 val create_property :
-  string -> int -> int -> int -> ANSITerminal.style list -> int -> t
+  string ->
+  int ->
+  int ->
+  int ->
+  ANSITerminal.style list ->
+  int ->
+  int ->
+  int ->
+  int ->
+  int ->
+  int ->
+  int ->
+  t
 (** [create_property name pos cost rent color] creates a property with the name
     [name], position [pos], cost [cost], rent [rent], and color [color]. *)
