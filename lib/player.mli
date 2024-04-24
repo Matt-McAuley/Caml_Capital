@@ -45,9 +45,9 @@ val get_money : t -> int
 (** [get_properties player] is the amount of money owned by [player]. *)
 
 val add_money : t -> int -> t
-(** [add_money player property] is a player with the fields of [player] but with
+(** [add_money player money] is a player with the fields of [player] but with
     [money] added to their money. *)
 
 val remove_money : t -> int -> t
-(** [add_money player property] is a player with the fields of [player] but with
+(** [add_money player money] is a player with the fields of [player] but with
     [money] removed from their money. *)
