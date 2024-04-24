@@ -73,6 +73,7 @@ let player_info player =
 (** [pretty_info_printer p] is a helper function that prints the base
     information of player p on the terminal, using colors. *)
 let pretty_info_printer p =
+  if Player.is_empty p then () else
   (* helper to remove the last element of a list *)
   let rec remove_last = function
     | [] -> failwith "Cannot remove from empty list"
@@ -221,7 +222,7 @@ let land_on_prop property player p1 p2 p3 p4 =
   | None -> (buy_property player property, player)
 
 let land_on_go p1 p2 p3 p4 turn game_loop =
-  Printf.printf "You landed on GO, take a break!\n";
+  Printf.printf "You landed on GO, you get $200!\n";
   Printf.printf "Press \"ENTER\" to continue: %!";
   let _ = read_line () in
   game_loop p1 p2 p3 p4 (turn + 1)
@@ -316,6 +317,7 @@ let rec game_loop (p1 : Player.t) (p2 : Player.t) (p3 : Player.t)
   else
     let _ = Sys.command "clear" in
     print_info p1 p2 p3 p4;
+    print_endline "";
     if turn mod 4 = 1 then p1_turn p1 p2 p3 p4 turn game_loop
     else if turn mod 4 = 2 then p2_turn p1 p2 p3 p4 turn game_loop
     else if turn mod 4 = 3 then p3_turn p1 p2 p3 p4 turn game_loop

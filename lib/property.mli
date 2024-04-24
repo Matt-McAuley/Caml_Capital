@@ -9,8 +9,12 @@ val get_pos : t -> int
 val get_cost : t -> int
 (** [get_cost] returns the cost to purchase the property. *)
 
+val get_house_cost : t -> int
+(** [get_house_cost] is the cost of buying a house/hotel for the property. *)
+
 val get_rent : t -> int
-(** [get_rent] returns the rent that a player landing on the property must pay. *)
+(** [get_rent] returns the rent that a player landing on the property must pay
+    based on the property's level. *)
 
 val get_color : t -> ANSITerminal.style list
 (** [get_color] returns the color group that the property falls under. *)
@@ -33,5 +37,12 @@ val create_property :
   int ->
   int ->
   t
-(** [create_property name pos cost rent color] creates a property with the name
-    [name], position [pos], cost [cost], rent [rent], and color [color]. *)
+(** [create_property name pos cost base_rent color house_cost h1_rent h2_rent
+    h3_rent h4_rent hotel_rent mortgage]
+    creates a property with the given [name], position [pos], [cost],
+    [base_rent], [color], [house_cost], [mortgage], and rents with the given
+    number of houses/hotels specified by [h1_rent], [h2_rent], [h3_rent],
+    [h4_rent], [hotel_rent]. *)
+
+val upgrade_level : t -> t
+(** [upgrade_level p] is the property [p] with its level upgraded. *)
