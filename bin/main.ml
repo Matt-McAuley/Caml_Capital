@@ -207,6 +207,8 @@ let pay_rent (player : Player.t) (owner : Player.t) (property : Property.t) =
   in
   (new_player, new_owner)
 
+(** [land_on_prop property player p1 p2 p3 p4] implements the functionality
+    necessary when a player lands on property [property]. *)
 let land_on_prop property player p1 p2 p3 p4 =
   let property_owner = get_property_owner property p1 p2 p3 p4 in
   match property_owner with
@@ -222,6 +224,8 @@ let land_on_prop property player p1 p2 p3 p4 =
       else pay_rent player x property
   | None -> (buy_property player property, player)
 
+(** [land_on_go p1 p2 p3 p4 turn game_loop] prints tells the player they landed
+    on GO!. *)
 let land_on_go p1 p2 p3 p4 turn game_loop =
   Printf.printf "You landed on GO, you get $200!\n";
   Printf.printf "Press \"ENTER\" to continue: %!";
@@ -232,6 +236,8 @@ let land_on_go p1 p2 p3 p4 turn game_loop =
 let pass_go p old_pos =
   if Player.get_position p < old_pos then Player.add_money p 200 else p
 
+(** [p1_turn p1 p2 p3 p4 game_loop] is a helper function to the game loop when
+    it is p1's turn. *)
 let p1_turn p1 p2 p3 p4 turn game_loop =
   if p1 = Player.empty then game_loop p1 p2 p3 p4 (turn + 1)
   else if not (query_player p1) then game_loop p1 p2 p3 p4 (turn + 1)
@@ -254,6 +260,8 @@ let p1_turn p1 p2 p3 p4 turn game_loop =
         game_loop p1 p2 p3 (snd result) (turn + 1)
       else game_loop p1 p2 p3 p4 (turn + 1)
 
+(** [p2_turn p1 p2 p3 p4 game_loop] is a helper function to the game loop when
+    it is p2's turn. *)
 let p2_turn p1 p2 p3 p4 turn game_loop =
   if p2 = Player.empty then game_loop p1 p2 p3 p4 (turn + 1)
   else if not (query_player p2) then game_loop p1 p2 p3 p4 (turn + 1)
@@ -276,6 +284,8 @@ let p2_turn p1 p2 p3 p4 turn game_loop =
         game_loop p1 p2 p3 (snd result) (turn + 1)
       else game_loop p1 p2 p3 p4 (turn + 1)
 
+(** [p3_turn p1 p2 p3 p4 game_loop] is a helper function to the game loop when
+    it is p3's turn. *)
 let p3_turn p1 p2 p3 p4 turn game_loop =
   if p3 = Player.empty then game_loop p1 p2 p3 p4 (turn + 1)
   else if not (query_player p3) then game_loop p1 p2 p3 p4 (turn + 1)
@@ -298,6 +308,8 @@ let p3_turn p1 p2 p3 p4 turn game_loop =
         game_loop p1 p2 p3 (snd result) (turn + 1)
       else game_loop p1 p2 p3 p4 (turn + 1)
 
+(** [p4_turn p1 p2 p3 p4 game_loop] is a helper function to the game loop when
+    it is p4's turn. *)
 let p4_turn p1 p2 p3 p4 turn game_loop =
   if p4 = Player.empty then game_loop p1 p2 p3 p4 (turn + 1)
   else if not (query_player p4) then game_loop p1 p2 p3 p4 (turn + 1)
@@ -320,6 +332,8 @@ let p4_turn p1 p2 p3 p4 turn game_loop =
         game_loop p1 p2 (snd result) p4 (turn + 1)
       else game_loop p1 p2 p3 p4 (turn + 1)
 
+(** [game_loop p1 p2 p3 p4 turn] continously runs the game until it is over.
+    [turn] keeps track of which player's turn it is. *)
 let rec game_loop (p1 : Player.t) (p2 : Player.t) (p3 : Player.t)
     (p4 : Player.t) turn =
   if not (check_players_left p1 p2 p3 p4) then ()
@@ -332,6 +346,8 @@ let rec game_loop (p1 : Player.t) (p2 : Player.t) (p3 : Player.t)
     else if turn mod 4 = 3 then p3_turn p1 p2 p3 p4 turn game_loop
     else p4_turn p1 p2 p3 p4 turn game_loop
 
+(** [run_game p1 p2 p3 p4] gets the game started by initiating the game loop
+    function on turn = 1. *)
 let run_game p1 p2 p3 p4 = game_loop p1 p2 p3 p4 1
 
 (** Begins game by asking player to type start*)
