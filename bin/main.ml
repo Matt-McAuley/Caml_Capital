@@ -189,11 +189,14 @@ let buy_property (player : Player.t) (property : Property.t) =
   let the_input = read_line () in
   if the_input = "b" then begin
     bought_railroad player property;
+    if Player.has_set player prop_color then Property.upgrade_level property;
     if Player.get_money player > Property.get_cost property then
       Player.add_property
         (Player.remove_money player (Property.get_cost property))
         property
     else begin
+      Printf.printf "Insufficient funds to purchase %s" prop_name;
+      let _ = read_line () in
       Printf.printf "Insufficient funds to purchase %s%!\n" prop_name;
       player
     end
@@ -210,7 +213,8 @@ let pay_rent (player : Player.t) (owner : Player.t) (property : Property.t) =
     (Property.get_name property)
     (Property.get_rent property)
     (Player.get_name owner);
-  print_string [] "Press \"ENTER\" to continue: ";
+  print_endline "";
+  print_string [] "\nPress \"ENTER\" to continue: ";
   let _ = read_line () in
   let balance = Player.get_money player in
   let color = Property.get_color property in
@@ -238,7 +242,7 @@ let land_on_prop property player p1 p2 p3 p4 =
           Printf.printf "You landed on your own property, %s, phew!\n"
             (Property.get_name property)
         in
-        let () = Printf.printf "Press \"ENTER\" to continue: %!" in
+        let () = Printf.printf "\nPress \"ENTER\" to continue: %!" in
         let _ = read_line () in
         (player, x)
       else pay_rent player x property
@@ -248,10 +252,12 @@ let land_on_prop property player p1 p2 p3 p4 =
     on GO!. *)
 let land_on_go p1 p2 p3 p4 turn game_loop =
   Printf.printf "You landed on GO, take a break!\n";
-  Printf.printf "Press \"ENTER\" to continue: %!";
+  Printf.printf "\nPress \"ENTER\" to continue: %!";
   let _ = read_line () in
   game_loop p1 p2 p3 p4 (turn + 1)
 
+(** [get_property_by_name prop_name] is the property with the [prop_name] inside
+    of the global property list. *)
 let get_property_by_name prop_name =
   match
     List.filter
@@ -263,6 +269,11 @@ let get_property_by_name prop_name =
   | [] -> None
   | h :: _ -> Some h
 
+(** [query_house player] runs once a player has a color set of any kind. It asks
+    them if they would like to buy a house on their properties and then
+    continues accordingly, changing the property level and the [player]'s money.
+    It also accounts for incorrect property names, a property that is not owned,
+    and skipping for the current turn *)
 let rec query_house player =
   print_string []
     "If you would like to buy a house, enter the name of the property, \
@@ -426,7 +437,7 @@ let () =
   (* Terminal.setup_term (); Terminal.input_non_canonique_restart_unblocked
      ~when_unblocked:handle_key stdin; Terminal.restore_term () *)
   print_logo ();
-  let () = print_string [] "Press \"ENTER\" to begin the game: " in
+  let () = print_string [] "\nPress \"ENTER\" to begin the game: " in
   let the_input = read_line () in
   if the_input = "" then begin
     (* Create player 1*)
