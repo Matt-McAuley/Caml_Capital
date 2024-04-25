@@ -44,5 +44,5 @@ val create_property :
     number of houses/hotels specified by [h1_rent], [h2_rent], [h3_rent],
     [h4_rent], [hotel_rent]. *)
 
-val upgrade_level : t -> t
+val upgrade_level : t -> unit
 (** [upgrade_level p] is the property [p] with its level upgraded. *)

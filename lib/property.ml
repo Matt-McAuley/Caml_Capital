@@ -51,4 +51,3 @@ let create_property name pos cost base_rent color house_cost h1_rent h2_rent
 
 let upgrade_level p =
   p.level := !(p.level) + 1;
-  p

@@ -73,31 +73,32 @@ let player_info player =
 (** [pretty_info_printer p] is a helper function that prints the base
     information of player p on the terminal, using colors. *)
 let pretty_info_printer p =
-  if Player.is_empty p then () else
-  (* helper to remove the last element of a list *)
-  let rec remove_last = function
-    | [] -> failwith "Cannot remove from empty list"
-    | _ :: [] -> []
-    | x :: xs -> x :: remove_last xs
-  in
-  (* helper to return the last element of a list *)
-  let rec return_last = function
-    | [] -> failwith "empty list"
-    | h :: [] -> h
-    | _ :: t -> return_last t
-  in
-  (* iterable printer to print each property with color *)
-  let print_property_color prop =
-    print_string (Property.get_color prop) (Property.get_name prop ^ ", ")
-  in
-  let p_info = player_info p in
-  let p_info_lst = String.split_on_char '|' p_info in
-  print_string [] (String.concat "|" (remove_last p_info_lst));
-  print_string [] "|";
-  print_string [] (String.sub (return_last p_info_lst) 0 14);
-  List.iter print_property_color (Player.get_properties p);
-  print_string [] ")";
-  print_endline ""
+  if Player.is_empty p then ()
+  else
+    (* helper to remove the last element of a list *)
+    let rec remove_last = function
+      | [] -> failwith "Cannot remove from empty list"
+      | _ :: [] -> []
+      | x :: xs -> x :: remove_last xs
+    in
+    (* helper to return the last element of a list *)
+    let rec return_last = function
+      | [] -> failwith "empty list"
+      | h :: [] -> h
+      | _ :: t -> return_last t
+    in
+    (* iterable printer to print each property with color *)
+    let print_property_color prop =
+      print_string (Property.get_color prop) (Property.get_name prop ^ ", ")
+    in
+    let p_info = player_info p in
+    let p_info_lst = String.split_on_char '|' p_info in
+    print_string [] (String.concat "|" (remove_last p_info_lst));
+    print_string [] "|";
+    print_string [] (String.sub (return_last p_info_lst) 0 14);
+    List.iter print_property_color (Player.get_properties p);
+    print_string [] ")";
+    print_endline ""
 
 (** Print info about each player. If the player is empty, print an empty string *)
 let print_info (p1 : Player.t) (p2 : Player.t) (p3 : Player.t) (p4 : Player.t) :
@@ -173,7 +174,7 @@ let buy_property (player : Player.t) (property : Property.t) =
         (Player.remove_money player (Property.get_cost property))
         property
     else begin
-      Printf.printf "Insufficient funds to purchase %s" prop_name;
+      Printf.printf "Insufficient funds to purchase %s%!\n" prop_name;
       player
     end
   end
@@ -222,10 +223,50 @@ let land_on_prop property player p1 p2 p3 p4 =
   | None -> (buy_property player property, player)
 
 let land_on_go p1 p2 p3 p4 turn game_loop =
-  Printf.printf "You landed on GO, you get $200!\n";
+  Printf.printf "You landed on GO, take a break!\n";
   Printf.printf "Press \"ENTER\" to continue: %!";
   let _ = read_line () in
   game_loop p1 p2 p3 p4 (turn + 1)
+
+let get_property_by_name prop_name =
+  match
+    List.filter
+      (fun x ->
+        String.lowercase_ascii (Property.get_name x)
+        = String.lowercase_ascii prop_name)
+      Temp_properties.property_list
+  with
+  | [] -> None
+  | h :: _ -> Some h
+
+let rec query_house player =
+  print_string []
+    "If you would like to buy a house, enter the name of the property, \
+     otherwise type 'no': ";
+  let response = read_line () in
+  if String.lowercase_ascii response = "no" then player else
+  match get_property_by_name response with
+  | None ->
+      print_endline "There is no property by that name!";
+      query_house player
+  | Some prop ->
+      if Player.has_set player (Property.get_color prop) then 
+        if Player.get_money player > Property.get_house_cost prop then
+        begin
+        print_string [] (Player.get_name player ^ " bought a house on ");
+        print_string (Property.get_color prop) (Property.get_name prop);
+        print_endline ".";
+        Property.upgrade_level prop;
+        Printf.printf "The rent of the property is now %i %!\n" (Property.get_rent prop);
+        Printf.printf "Press \"ENTER\" to continue: %!";
+        let _ = read_line () in Player.remove_money player (Property.get_house_cost prop)
+      end
+      else begin print_endline "You do not have enough money!"; query_house player end
+      else begin print_endline "You do not own that property set!";
+      query_house player end
+
+let check_set player = if Player.has_any_set player then query_house player
+  else player
 
 let p1_turn p1 p2 p3 p4 turn game_loop =
   if p1 = Player.empty then game_loop p1 p2 p3 p4 (turn + 1)
@@ -239,6 +280,7 @@ let p1_turn p1 p2 p3 p4 turn game_loop =
     else
       let result = land_on_prop property p1 p1 p2 p3 p4 in
       let p1 = fst result in
+      let p1 = check_set p1 in
       if owns_property property p1 then game_loop p1 p2 p3 p4 (turn + 1)
       else if owns_property property p2 then
         game_loop p1 (snd result) p3 p4 (turn + 1)
@@ -260,6 +302,7 @@ let p2_turn p1 p2 p3 p4 turn game_loop =
     else
       let result = land_on_prop property p2 p1 p2 p3 p4 in
       let p2 = fst result in
+      let p2 = check_set p2 in
       if owns_property property p2 then game_loop p1 p2 p3 p4 (turn + 1)
       else if owns_property property p1 then
         game_loop (snd result) p2 p3 p4 (turn + 1)
@@ -281,6 +324,7 @@ let p3_turn p1 p2 p3 p4 turn game_loop =
     else
       let result = land_on_prop property p3 p1 p2 p3 p4 in
       let p3 = fst result in
+      let p3 = check_set p3 in
       if owns_property property p3 then game_loop p1 p2 p3 p4 (turn + 1)
       else if owns_property property p1 then
         game_loop (snd result) p2 p3 p4 (turn + 1)
@@ -302,6 +346,7 @@ let p4_turn p1 p2 p3 p4 turn game_loop =
     else
       let result = land_on_prop property p4 p1 p2 p3 p4 in
       let p4 = fst result in
+      let p4 = check_set p4 in
       if owns_property property p4 then game_loop p1 p2 p3 p4 (turn + 1)
       else if owns_property property p1 then
         game_loop (snd result) p2 p3 p4 (turn + 1)
