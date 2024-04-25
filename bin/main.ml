@@ -169,11 +169,14 @@ let buy_property (player : Player.t) (property : Property.t) =
   ANSITerminal.(printf [] " for %s: " prop_cost);
   let the_input = read_line () in
   if the_input = "b" then begin
+    if Player.has_set player prop_color then Property.upgrade_level property;
     if Player.get_money player > Property.get_cost property then
       Player.add_property
         (Player.remove_money player (Property.get_cost property))
         property
     else begin
+      Printf.printf "Insufficient funds to purchase %s" prop_name;
+      let _ = read_line () in
       Printf.printf "Insufficient funds to purchase %s%!\n" prop_name;
       player
     end
@@ -190,7 +193,8 @@ let pay_rent (player : Player.t) (owner : Player.t) (property : Property.t) =
     (Property.get_name property)
     (Property.get_rent property)
     (Player.get_name owner);
-  print_string [] "Press \"ENTER\" to continue: ";
+  print_endline "";
+  print_string [] "\nPress \"ENTER\" to continue: ";
   let _ = read_line () in
   let balance = Player.get_money player in
   let color = Property.get_color property in
@@ -218,7 +222,7 @@ let land_on_prop property player p1 p2 p3 p4 =
           Printf.printf "You landed on your own property, %s, phew!\n"
             (Property.get_name property)
         in
-        let () = Printf.printf "Press \"ENTER\" to continue: %!" in
+        let () = Printf.printf "\nPress \"ENTER\" to continue: %!" in
         let _ = read_line () in
         (player, x)
       else pay_rent player x property
@@ -228,7 +232,7 @@ let land_on_prop property player p1 p2 p3 p4 =
     on GO!. *)
 let land_on_go p1 p2 p3 p4 turn game_loop =
   Printf.printf "You landed on GO, take a break!\n";
-  Printf.printf "Press \"ENTER\" to continue: %!";
+  Printf.printf "\nPress \"ENTER\" to continue: %!";
   let _ = read_line () in
   game_loop p1 p2 p3 p4 (turn + 1)
 
@@ -248,29 +252,36 @@ let rec query_house player =
     "If you would like to buy a house, enter the name of the property, \
      otherwise type 'no': ";
   let response = read_line () in
-  if String.lowercase_ascii response = "no" then player else
-  match get_property_by_name response with
-  | None ->
-      print_endline "There is no property by that name!";
-      query_house player
-  | Some prop ->
-      if Player.has_set player (Property.get_color prop) then 
-        if Player.get_money player > Property.get_house_cost prop then
-        begin
-        print_string [] (Player.get_name player ^ " bought a house on ");
-        print_string (Property.get_color prop) (Property.get_name prop);
-        print_endline ".";
-        Property.upgrade_level prop;
-        Printf.printf "The rent of the property is now %i %!\n" (Property.get_rent prop);
-        Printf.printf "Press \"ENTER\" to continue: %!";
-        let _ = read_line () in Player.remove_money player (Property.get_house_cost prop)
-      end
-      else begin print_endline "You do not have enough money!"; query_house player end
-      else begin print_endline "You do not own that property set!";
-      query_house player end
+  if String.lowercase_ascii response = "no" then player
+  else
+    match get_property_by_name response with
+    | None ->
+        print_endline "There is no property by that name!";
+        query_house player
+    | Some prop ->
+        if Player.has_set player (Property.get_color prop) then
+          if Player.get_money player > Property.get_house_cost prop then begin
+            print_string [] (Player.get_name player ^ " bought a house on ");
+            print_string (Property.get_color prop) (Property.get_name prop);
+            print_endline ".";
+            Property.upgrade_level prop;
+            Printf.printf "The rent of the property is now %i %!\n"
+              (Property.get_rent prop);
+            Printf.printf "Press \"ENTER\" to continue: %!";
+            let _ = read_line () in
+            Player.remove_money player (Property.get_house_cost prop)
+          end
+          else begin
+            print_endline "You do not have enough money!";
+            query_house player
+          end
+        else begin
+          print_endline "You do not own that property set!";
+          query_house player
+        end
 
-let check_set player = if Player.has_any_set player then query_house player
-  else player
+let check_set player =
+  if Player.has_any_set player then query_house player else player
 
 (** [pass_go p old_pos] adds 200 money to the player [p] if they have passed go. *)
 let pass_go p old_pos =
@@ -399,7 +410,7 @@ let () =
   (* Terminal.setup_term (); Terminal.input_non_canonique_restart_unblocked
      ~when_unblocked:handle_key stdin; Terminal.restore_term () *)
   print_logo ();
-  let () = print_string [] "Press \"ENTER\" to begin the game: " in
+  let () = print_string [] "\nPress \"ENTER\" to begin the game: " in
   let the_input = read_line () in
   if the_input = "" then begin
     (* Create player 1*)
