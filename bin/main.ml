@@ -73,31 +73,32 @@ let player_info player =
 (** [pretty_info_printer p] is a helper function that prints the base
     information of player p on the terminal, using colors. *)
 let pretty_info_printer p =
-  if Player.is_empty p then () else
-  (* helper to remove the last element of a list *)
-  let rec remove_last = function
-    | [] -> failwith "Cannot remove from empty list"
-    | _ :: [] -> []
-    | x :: xs -> x :: remove_last xs
-  in
-  (* helper to return the last element of a list *)
-  let rec return_last = function
-    | [] -> failwith "empty list"
-    | h :: [] -> h
-    | _ :: t -> return_last t
-  in
-  (* iterable printer to print each property with color *)
-  let print_property_color prop =
-    print_string (Property.get_color prop) (Property.get_name prop ^ ", ")
-  in
-  let p_info = player_info p in
-  let p_info_lst = String.split_on_char '|' p_info in
-  print_string [] (String.concat "|" (remove_last p_info_lst));
-  print_string [] "|";
-  print_string [] (String.sub (return_last p_info_lst) 0 14);
-  List.iter print_property_color (Player.get_properties p);
-  print_string [] ")";
-  print_endline ""
+  if Player.is_empty p then ()
+  else
+    (* helper to remove the last element of a list *)
+    let rec remove_last = function
+      | [] -> failwith "Cannot remove from empty list"
+      | _ :: [] -> []
+      | x :: xs -> x :: remove_last xs
+    in
+    (* helper to return the last element of a list *)
+    let rec return_last = function
+      | [] -> failwith "empty list"
+      | h :: [] -> h
+      | _ :: t -> return_last t
+    in
+    (* iterable printer to print each property with color *)
+    let print_property_color prop =
+      print_string (Property.get_color prop) (Property.get_name prop ^ ", ")
+    in
+    let p_info = player_info p in
+    let p_info_lst = String.split_on_char '|' p_info in
+    print_string [] (String.concat "|" (remove_last p_info_lst));
+    print_string [] "|";
+    print_string [] (String.sub (return_last p_info_lst) 0 14);
+    List.iter print_property_color (Player.get_properties p);
+    print_string [] ")";
+    print_endline ""
 
 (** Print info about each player. If the player is empty, print an empty string *)
 let print_info (p1 : Player.t) (p2 : Player.t) (p3 : Player.t) (p4 : Player.t) :
@@ -227,14 +228,19 @@ let land_on_go p1 p2 p3 p4 turn game_loop =
   let _ = read_line () in
   game_loop p1 p2 p3 p4 (turn + 1)
 
+(** [pass_go p old_pos] adds 200 money to the player [p] if they have passed go. *)
+let pass_go p old_pos =
+  if Player.get_position p < old_pos then Player.add_money p 200 else p
+
 let p1_turn p1 p2 p3 p4 turn game_loop =
   if p1 = Player.empty then game_loop p1 p2 p3 p4 (turn + 1)
   else if not (query_player p1) then game_loop p1 p2 p3 p4 (turn + 1)
   else
+    let old_pos = Player.get_position p1 in
     let p1 = move_player_random p1 in
+    let p1 = pass_go p1 old_pos in
     let property = check_property_at_pos (Player.get_position p1) in
     if Property.get_name property = "GO!" then
-      let p1 = Player.add_money p1 200 in
       land_on_go p1 p2 p3 p4 turn game_loop
     else
       let result = land_on_prop property p1 p1 p2 p3 p4 in
@@ -252,10 +258,11 @@ let p2_turn p1 p2 p3 p4 turn game_loop =
   if p2 = Player.empty then game_loop p1 p2 p3 p4 (turn + 1)
   else if not (query_player p2) then game_loop p1 p2 p3 p4 (turn + 1)
   else
+    let old_pos = Player.get_position p2 in
     let p2 = move_player_random p2 in
+    let p2 = pass_go p2 old_pos in
     let property = check_property_at_pos (Player.get_position p2) in
     if Property.get_name property = "GO!" then
-      let p2 = Player.add_money p2 200 in
       land_on_go p1 p2 p3 p4 turn game_loop
     else
       let result = land_on_prop property p2 p1 p2 p3 p4 in
@@ -273,10 +280,11 @@ let p3_turn p1 p2 p3 p4 turn game_loop =
   if p3 = Player.empty then game_loop p1 p2 p3 p4 (turn + 1)
   else if not (query_player p3) then game_loop p1 p2 p3 p4 (turn + 1)
   else
+    let old_pos = Player.get_position p3 in
     let p3 = move_player_random p3 in
+    let p3 = pass_go p3 old_pos in
     let property = check_property_at_pos (Player.get_position p3) in
     if Property.get_name property = "GO!" then
-      let p3 = Player.add_money p3 200 in
       land_on_go p1 p2 p3 p4 turn game_loop
     else
       let result = land_on_prop property p3 p1 p2 p3 p4 in
@@ -294,10 +302,11 @@ let p4_turn p1 p2 p3 p4 turn game_loop =
   if p4 = Player.empty then game_loop p1 p2 p3 p4 (turn + 1)
   else if not (query_player p4) then game_loop p1 p2 p3 p4 (turn + 1)
   else
+    let old_pos = Player.get_position p4 in
     let p4 = move_player_random p4 in
+    let p4 = pass_go p4 old_pos in
     let property = check_property_at_pos (Player.get_position p4) in
     if Property.get_name property = "GO!" then
-      let p4 = Player.add_money p4 200 in
       land_on_go p1 p2 p3 p4 turn game_loop
     else
       let result = land_on_prop property p4 p1 p2 p3 p4 in
