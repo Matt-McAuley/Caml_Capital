@@ -232,6 +232,8 @@ let land_on_go p1 p2 p3 p4 turn game_loop =
   let _ = read_line () in
   game_loop p1 p2 p3 p4 (turn + 1)
 
+(** [get_property_by_name prop_name] is the property with the [prop_name] inside
+    of the global property list. *)
 let get_property_by_name prop_name =
   match
     List.filter
@@ -243,34 +245,49 @@ let get_property_by_name prop_name =
   | [] -> None
   | h :: _ -> Some h
 
+(** [query_house player] runs once a player has a color set of any kind. It asks
+    them if they would like to buy a house on their properties and then
+    continues accordingly, changing the property level and the [player]'s money.
+    It also accounts for incorrect property names, a property that is not owned,
+    and skipping for the current turn *)
 let rec query_house player =
   print_string []
     "If you would like to buy a house, enter the name of the property, \
      otherwise type 'no': ";
   let response = read_line () in
-  if String.lowercase_ascii response = "no" then player else
-  match get_property_by_name response with
-  | None ->
-      print_endline "There is no property by that name!";
-      query_house player
-  | Some prop ->
-      if Player.has_set player (Property.get_color prop) then 
-        if Player.get_money player > Property.get_house_cost prop then
-        begin
-        print_string [] (Player.get_name player ^ " bought a house on ");
-        print_string (Property.get_color prop) (Property.get_name prop);
-        print_endline ".";
-        Property.upgrade_level prop;
-        Printf.printf "The rent of the property is now %i %!\n" (Property.get_rent prop);
-        Printf.printf "Press \"ENTER\" to continue: %!";
-        let _ = read_line () in Player.remove_money player (Property.get_house_cost prop)
-      end
-      else begin print_endline "You do not have enough money!"; query_house player end
-      else begin print_endline "You do not own that property set!";
-      query_house player end
+  if String.lowercase_ascii response = "no" then player
+  else
+    match get_property_by_name response with
+    | None ->
+        print_endline "There is no property by that name!";
+        query_house player
+    | Some prop ->
+        if Player.has_set player (Property.get_color prop) then
+          if Player.get_money player > Property.get_house_cost prop then begin
+            print_string [] (Player.get_name player ^ " bought a house on ");
+            print_string (Property.get_color prop) (Property.get_name prop);
+            print_endline ".";
+            Property.upgrade_level prop;
+            Printf.printf "The rent of the property is now %i %!\n"
+              (Property.get_rent prop);
+            Printf.printf "Press \"ENTER\" to continue: %!";
+            let _ = read_line () in
+            Player.remove_money player (Property.get_house_cost prop)
+          end
+          else begin
+            print_endline "You do not have enough money!";
+            query_house player
+          end
+        else begin
+          print_endline "You do not own that property set!";
+          query_house player
+        end
 
-let check_set player = if Player.has_any_set player then query_house player
-  else player
+(** [check_set player] checks if a [player] has a set of a color and if they do
+    asks if they want to buy a house using helper function [query_house].
+    Otherwise returns the player unchanged. *)
+let check_set player =
+  if Player.has_any_set player then query_house player else player
 
 (** [pass_go p old_pos] adds 200 money to the player [p] if they have passed go. *)
 let pass_go p old_pos =
