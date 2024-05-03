@@ -51,3 +51,6 @@ val add_money : t -> int -> t
 val remove_money : t -> int -> t
 (** [add_money player money] is a player with the fields of [player] but with
     [money] removed from their money. *)
+
+val is_in_jail : t -> bool
+(** [is_in_jail player] is whether the player is in Jail or not. *)

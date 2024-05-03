@@ -294,7 +294,8 @@ let land_on_GTJ player = player
 
 (** [land_on_jail player] handles the player landing on the Jail square but they
     are just visiting. *)
-let land_on_jail player = player
+let land_on_jail player = 
+  send_message "You're visiting the Jail!"; player
 
 (** [special_square p1 p2 p3 p4 turn game_loop] handles landing on a unique game
     square that is not a property, railroad, or utility. *)

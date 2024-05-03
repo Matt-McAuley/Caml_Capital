@@ -3,9 +3,11 @@ type t = {
   position : int;
   properties : Property.t list;
   money : int;
+  in_jail : bool;
 }
 
-let empty = { name = ""; position = -1; properties = []; money = -1 }
+let empty =
+  { name = ""; position = -1; properties = []; money = -1; in_jail = false }
 
 let create_player name =
   {
@@ -13,12 +15,15 @@ let create_player name =
     position = 0;
     properties = [];
     money = 1500;
+    in_jail = false;
   }
 
 let is_empty player =
   player.name = "" && player.position = -1 && player.money = -1
 
-let create_player name = { name; position = 0; properties = []; money = 1500 }
+let create_player name =
+  { name; position = 0; properties = []; money = 1500; in_jail = false }
+
 let get_name player = player.name
 let get_position player = player.position
 
@@ -28,6 +33,7 @@ let set_position player new_pos =
     position = new_pos;
     properties = player.properties;
     money = player.money;
+    in_jail = player.in_jail;
   }
 
 let get_properties player = player.properties
@@ -38,6 +44,7 @@ let add_property player property =
     position = player.position;
     properties = property :: player.properties;
     money = player.money;
+    in_jail = player.in_jail;
   }
 
 let remove_property player property =
@@ -46,6 +53,7 @@ let remove_property player property =
     position = player.position;
     properties = List.filter (fun x -> x <> property) player.properties;
     money = player.money;
+    in_jail = player.in_jail;
   }
 
 let has_set player set_color : bool =
@@ -80,6 +88,7 @@ let add_money player money =
     position = player.position;
     properties = player.properties;
     money = player.money + money;
+    in_jail = player.in_jail;
   }
 
 let remove_money player money =
@@ -88,4 +97,7 @@ let remove_money player money =
     position = player.position;
     properties = player.properties;
     money = player.money - money;
+    in_jail = player.in_jail;
   }
+
+let is_in_jail player = player.in_jail
