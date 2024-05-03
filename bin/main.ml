@@ -291,7 +291,7 @@ let land_on_free_parking player =
 
 (** [land_on_GTJ player] handles the player landing on the Go To Jail square. *)
 let land_on_GTJ player = send_message "You landed on Go To Jail, have fun!";
-  Player.is
+  Player.set_jail player true
 
 (** [land_on_jail player] handles the player landing on the Jail square but they
     are just visiting. *)
@@ -312,6 +312,20 @@ let special_square player property =
   else if name = "Jail" then land_on_jail player
   else (* Utilities *)
     player
+
+    (** [handle_jail player] checks whether or not a [player] is in jail
+        and deals with it accordingly. *)
+let handle_jail player = 
+  if not (Player.is_in_jail player) then player
+  else 
+    let rec loop () = 
+    Printf.printf "You are in jail, type 'roll' to roll the dice to get out.You need to get doubles to do so or else you stay in jail. Or you can pay $50 dollars to exit jail right now by typing 'pay'. If you are still in jail after 3 rolls you must pay the $50.";
+    Printf.printf "\nType your choice and press \"ENTER\" to continue: %!";
+    let choice = read_line () in
+    if choice = "roll" then player
+    else if choice = "pay" then player
+    else loop ()
+  in loop ()
 
 (** [get_property_by_name prop_name] is the property with the [prop_name] inside
     of the global property list. *)
@@ -376,26 +390,30 @@ let pass_go p old_pos =
 let p1_turn p1 p2 p3 p4 turn game_loop =
   if p1 = Player.empty then game_loop p1 p2 p3 p4 (turn + 1)
   else
-    query_player p1;
-    let old_pos = Player.get_position p1 in
-    let p1 = move_player_random p1 in
-    let p1 = pass_go p1 old_pos in
-    let property = check_property_at_pos (Player.get_position p1) in
-    if Property.get_color property = [ default ] then
-      let p1 = special_square p1 property in
-      game_loop p1 p2 p3 p4 (turn + 1)
-    else
-      let result = land_on_prop property p1 p1 p2 p3 p4 in
-      let p1 = fst result in
-      let p1 = check_set p1 in
-      if owns_property property p1 then game_loop p1 p2 p3 p4 (turn + 1)
-      else if owns_property property p2 then
-        game_loop p1 (snd result) p3 p4 (turn + 1)
-      else if owns_property property p3 then
-        game_loop p1 p2 (snd result) p4 (turn + 1)
-      else if owns_property property p4 then
-        game_loop p1 p2 p3 (snd result) (turn + 1)
-      else game_loop p1 p2 p3 p4 (turn + 1)
+    let p1 = handle_jail p1 in
+    if not (Player.is_in_jail p1) then begin
+      query_player p1;
+      let old_pos = Player.get_position p1 in
+      let p1 = move_player_random p1 in
+      let p1 = pass_go p1 old_pos in
+      let property = check_property_at_pos (Player.get_position p1) in
+      if Property.get_color property = [ default ] then
+        let p1 = special_square p1 property in
+        game_loop p1 p2 p3 p4 (turn + 1)
+      else
+        let result = land_on_prop property p1 p1 p2 p3 p4 in
+        let p1 = fst result in
+        let p1 = check_set p1 in
+        if owns_property property p1 then game_loop p1 p2 p3 p4 (turn + 1)
+        else if owns_property property p2 then
+          game_loop p1 (snd result) p3 p4 (turn + 1)
+        else if owns_property property p3 then
+          game_loop p1 p2 (snd result) p4 (turn + 1)
+        else if owns_property property p4 then
+          game_loop p1 p2 p3 (snd result) (turn + 1)
+        else game_loop p1 p2 p3 p4 (turn + 1)
+      end
+  else game_loop p1 p2 p3 p4 (turn + 1)
 
 (** [p2_turn p1 p2 p3 p4 game_loop] is a helper function to the game loop when
     it is p2's turn. *)
