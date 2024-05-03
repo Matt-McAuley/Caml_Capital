@@ -290,7 +290,8 @@ let land_on_free_parking player =
   Player.add_money player money
 
 (** [land_on_GTJ player] handles the player landing on the Go To Jail square. *)
-let land_on_GTJ player = player
+let land_on_GTJ player = send_message "You landed on Go To Jail, have fun!";
+  Player.is
 
 (** [land_on_jail player] handles the player landing on the Jail square but they
     are just visiting. *)

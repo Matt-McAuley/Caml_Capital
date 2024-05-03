@@ -53,4 +53,8 @@ val remove_money : t -> int -> t
     [money] removed from their money. *)
 
 val is_in_jail : t -> bool
-(** [is_in_jail player] is whether the player is in Jail or not. *)
+(** [is_in_jail player] is whether the [player] is in Jail or not. *)
+
+val set_jail : t -> bool -> t
+(** [set_jail player in_jail] sets the [player]'s Jail status according to
+    [in_jail]. *)

@@ -101,3 +101,12 @@ let remove_money player money =
   }
 
 let is_in_jail player = player.in_jail
+
+let set_jail player in_jail =
+  {
+    name = player.name;
+    position = player.position;
+    properties = player.properties;
+    money = player.money;
+    in_jail;
+  }
