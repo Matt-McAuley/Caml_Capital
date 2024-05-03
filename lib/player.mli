@@ -62,6 +62,6 @@ val set_jail : t -> bool -> t
 val get_rounds_in_jail : t -> int
 (** [get_rounds_in_jail player] is how many rounds [player] has been in Jail. *)
 
-val set_jail : t -> bool -> t
+val set_rounds_in_jail : t -> int -> t
 (** [set_rounds_in_jail player rounds] sets the [player]'s number of rounds in
     jail to [rounds]. *)
