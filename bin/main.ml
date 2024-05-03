@@ -430,75 +430,90 @@ let p1_turn p1 p2 p3 p4 turn game_loop =
     it is p2's turn. *)
 let p2_turn p1 p2 p3 p4 turn game_loop =
   if p2 = Player.empty then game_loop p1 p2 p3 p4 (turn + 1)
-  else query_player p2;
-  let old_pos = Player.get_position p2 in
-  let p2 = move_player_random p2 in
-  let p2 = pass_go p2 old_pos in
-  let property = check_property_at_pos (Player.get_position p2) in
-  if Property.get_color property = [ default ] then
-    let p2 = special_square p2 property in
-    game_loop p1 p2 p3 p4 (turn + 1)
   else
-    let result = land_on_prop property p2 p1 p2 p3 p4 in
-    let p2 = fst result in
-    let p2 = check_set p2 in
-    if owns_property property p2 then game_loop p1 p2 p3 p4 (turn + 1)
-    else if owns_property property p1 then
-      game_loop (snd result) p2 p3 p4 (turn + 1)
-    else if owns_property property p3 then
-      game_loop p1 p2 (snd result) p4 (turn + 1)
-    else if owns_property property p4 then
-      game_loop p1 p2 p3 (snd result) (turn + 1)
+    let p2 = handle_jail p2 in
+    if not (Player.is_in_jail p2) then begin
+      query_player p2;
+      let old_pos = Player.get_position p2 in
+      let p2 = move_player_random p2 in
+      let p2 = pass_go p2 old_pos in
+      let property = check_property_at_pos (Player.get_position p2) in
+      if Property.get_color property = [ default ] then
+        let p2 = special_square p2 property in
+        game_loop p1 p2 p3 p4 (turn + 1)
+      else
+        let result = land_on_prop property p2 p1 p2 p3 p4 in
+        let p2 = fst result in
+        let p2 = check_set p2 in
+        if owns_property property p2 then game_loop p1 p2 p3 p4 (turn + 1)
+        else if owns_property property p1 then
+          game_loop (snd result) p2 p3 p4 (turn + 1)
+        else if owns_property property p3 then
+          game_loop p1 p2 (snd result) p4 (turn + 1)
+        else if owns_property property p4 then
+          game_loop p1 p2 p3 (snd result) (turn + 1)
+        else game_loop p1 p2 p3 p4 (turn + 1)
+    end
     else game_loop p1 p2 p3 p4 (turn + 1)
 
 (** [p3_turn p1 p2 p3 p4 game_loop] is a helper function to the game loop when
     it is p3's turn. *)
 let p3_turn p1 p2 p3 p4 turn game_loop =
   if p3 = Player.empty then game_loop p1 p2 p3 p4 (turn + 1)
-  else query_player p3;
-  let old_pos = Player.get_position p3 in
-  let p3 = move_player_random p3 in
-  let p3 = pass_go p3 old_pos in
-  let property = check_property_at_pos (Player.get_position p3) in
-  if Property.get_color property = [ default ] then
-    let p3 = special_square p3 property in
-    game_loop p1 p2 p3 p4 (turn + 1)
   else
-    let result = land_on_prop property p3 p1 p2 p3 p4 in
-    let p3 = fst result in
-    let p3 = check_set p3 in
-    if owns_property property p3 then game_loop p1 p2 p3 p4 (turn + 1)
-    else if owns_property property p1 then
-      game_loop (snd result) p2 p3 p4 (turn + 1)
-    else if owns_property property p2 then
-      game_loop p1 (snd result) p3 p4 (turn + 1)
-    else if owns_property property p4 then
-      game_loop p1 p2 p3 (snd result) (turn + 1)
+    let p3 = handle_jail p3 in
+    if not (Player.is_in_jail p3) then begin
+      query_player p3;
+      let old_pos = Player.get_position p3 in
+      let p3 = move_player_random p3 in
+      let p3 = pass_go p3 old_pos in
+      let property = check_property_at_pos (Player.get_position p3) in
+      if Property.get_color property = [ default ] then
+        let p3 = special_square p3 property in
+        game_loop p1 p2 p3 p4 (turn + 1)
+      else
+        let result = land_on_prop property p3 p1 p2 p3 p4 in
+        let p3 = fst result in
+        let p3 = check_set p3 in
+        if owns_property property p3 then game_loop p1 p2 p3 p4 (turn + 1)
+        else if owns_property property p1 then
+          game_loop (snd result) p2 p3 p4 (turn + 1)
+        else if owns_property property p2 then
+          game_loop p1 (snd result) p3 p4 (turn + 1)
+        else if owns_property property p4 then
+          game_loop p1 p2 p3 (snd result) (turn + 1)
+        else game_loop p1 p2 p3 p4 (turn + 1)
+    end
     else game_loop p1 p2 p3 p4 (turn + 1)
 
 (** [p4_turn p1 p2 p3 p4 game_loop] is a helper function to the game loop when
     it is p4's turn. *)
 let p4_turn p1 p2 p3 p4 turn game_loop =
   if p4 = Player.empty then game_loop p1 p2 p3 p4 (turn + 1)
-  else query_player p4;
-  let old_pos = Player.get_position p4 in
-  let p4 = move_player_random p4 in
-  let p4 = pass_go p4 old_pos in
-  let property = check_property_at_pos (Player.get_position p4) in
-  if Property.get_color property = [ default ] then
-    let p4 = special_square p4 property in
-    game_loop p1 p2 p3 p4 (turn + 1)
   else
-    let result = land_on_prop property p4 p1 p2 p3 p4 in
-    let p4 = fst result in
-    let p4 = check_set p4 in
-    if owns_property property p4 then game_loop p1 p2 p3 p4 (turn + 1)
-    else if owns_property property p1 then
-      game_loop (snd result) p2 p3 p4 (turn + 1)
-    else if owns_property property p2 then
-      game_loop p1 (snd result) p3 p4 (turn + 1)
-    else if owns_property property p3 then
-      game_loop p1 p2 (snd result) p4 (turn + 1)
+    let p2 = handle_jail p4 in
+    if not (Player.is_in_jail p4) then begin
+      query_player p4;
+      let old_pos = Player.get_position p4 in
+      let p4 = move_player_random p4 in
+      let p4 = pass_go p4 old_pos in
+      let property = check_property_at_pos (Player.get_position p4) in
+      if Property.get_color property = [ default ] then
+        let p4 = special_square p4 property in
+        game_loop p1 p2 p3 p4 (turn + 1)
+      else
+        let result = land_on_prop property p4 p1 p2 p3 p4 in
+        let p4 = fst result in
+        let p4 = check_set p4 in
+        if owns_property property p4 then game_loop p1 p2 p3 p4 (turn + 1)
+        else if owns_property property p1 then
+          game_loop (snd result) p2 p3 p4 (turn + 1)
+        else if owns_property property p2 then
+          game_loop p1 (snd result) p3 p4 (turn + 1)
+        else if owns_property property p3 then
+          game_loop p1 p2 (snd result) p4 (turn + 1)
+        else game_loop p1 p2 p3 p4 (turn + 1)
+    end
     else game_loop p1 p2 p3 p4 (turn + 1)
 
 (** [game_loop p1 p2 p3 p4 turn] continously runs the game until it is over.
