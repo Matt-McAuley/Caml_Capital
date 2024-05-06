@@ -124,14 +124,24 @@ let remove_money player money =
 let is_in_jail player = player.in_jail
 
 let set_jail player in_jail =
-  {
-    name = player.name;
-    position = player.position;
-    properties = player.properties;
-    money = player.money;
-    in_jail;
-    rounds_in_jail = player.rounds_in_jail;
-  }
+  if in_jail = false then
+    {
+      name = player.name;
+      position = player.position;
+      properties = player.properties;
+      money = player.money;
+      in_jail;
+      rounds_in_jail = 0;
+    }
+  else
+    {
+      name = player.name;
+      position = player.position;
+      properties = player.properties;
+      money = player.money;
+      in_jail;
+      rounds_in_jail = player.rounds_in_jail;
+    }
 
 let get_rounds_in_jail player = player.rounds_in_jail
 

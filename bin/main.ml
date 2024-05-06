@@ -293,7 +293,8 @@ let land_on_free_parking player =
 (** [land_on_GTJ player] handles the player landing on the Go To Jail square. *)
 let land_on_GTJ player =
   send_message "You landed on Go To Jail, have fun!";
-  Player.set_jail player true
+  let player = Player.set_jail player true in
+  Player.set_position player 10
 
 (** [land_on_jail player] handles the player landing on the Jail square but they
     are just visiting. *)
@@ -316,6 +317,29 @@ let special_square player property =
   else (* Utilities *)
     player
 
+(** [choose_roll player] handles if the [player] chose to roll the dice to get
+    out of jail. *)
+let choose_roll player =
+  let () = Random.self_init () in
+  let roll = Random.int 6 in
+  if roll = 0 then
+    let () = Printf.printf "You rolled doubles and made it out of Jail!\n" in
+    Player.set_jail player false
+  else
+    let () = Printf.printf "You didn't roll doubles, you stay in Jail!" in
+    if Player.get_rounds_in_jail player <= 2 then begin
+      Printf.printf "\npress \"ENTER\" to continue: %!";
+      let _ = read_line () in
+      player
+    end
+    else
+      let () =
+        Printf.printf "\nThat was your third chance, you must pay $50!\n"
+      in
+      let player = Player.remove_money player 50 in
+      if Player.get_money player <= 0 then Player.empty
+      else Player.set_jail player false
+
 (** [handle_jail player] checks whether or not a [player] is in jail and deals
     with it accordingly. *)
 let handle_jail player =
@@ -324,16 +348,23 @@ let handle_jail player =
     let player =
       Player.set_rounds_in_jail player (Player.get_rounds_in_jail player + 1)
     in
+    Printf.printf
+      "%s, you are in jail, type 'roll' to roll the dice to get out. You need \
+       to get doubles to do so or else you stay in jail. Or you can pay $50 \
+       dollars to exit jail right now by typing 'pay'. If you are still in \
+       jail after 3 rolls you must pay the $50."
+      (Player.get_name player);
     let rec loop () =
-      Printf.printf
-        "You are in jail, type 'roll' to roll the dice to get out.You need to \
-         get doubles to do so or else you stay in jail. Or you can pay $50 \
-         dollars to exit jail right now by typing 'pay'. If you are still in \
-         jail after 3 rolls you must pay the $50.";
       Printf.printf "\nType your choice and press \"ENTER\" to continue: %!";
       let choice = read_line () in
-      if choice = "roll" then player
-      else if choice = "pay" then player
+      if choice = "roll" then choose_roll player
+      else if choice = "pay" then begin
+        Printf.printf "\n%s paid their way out of Jail!\n"
+          (Player.get_name player);
+        let player = Player.remove_money player 50 in
+        if Player.get_money player <= 0 then Player.empty
+        else Player.set_jail player false
+      end
       else loop ()
     in
     loop ()
