@@ -51,3 +51,17 @@ val add_money : t -> int -> t
 val remove_money : t -> int -> t
 (** [add_money player money] is a player with the fields of [player] but with
     [money] removed from their money. *)
+
+val is_in_jail : t -> bool
+(** [is_in_jail player] is whether the [player] is in Jail or not. *)
+
+val set_jail : t -> bool -> t
+(** [set_jail player in_jail] sets the [player]'s Jail status according to
+    [in_jail]. *)
+
+val get_rounds_in_jail : t -> int
+(** [get_rounds_in_jail player] is how many rounds [player] has been in Jail. *)
+
+val set_rounds_in_jail : t -> int -> t
+(** [set_rounds_in_jail player rounds] sets the [player]'s number of rounds in
+    jail to [rounds]. *)

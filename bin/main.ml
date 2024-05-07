@@ -2,6 +2,8 @@ open Final_project
 open Temp_properties
 open ANSITerminal
 
+let free_parking_money = ref 0
+
 (** [print_logo] is the interface with the following format: Position on board:
     <users> Money for each player: <users> Properties owned: <users> printed to
     the console.*)
@@ -124,14 +126,14 @@ let roll_dice () =
 let move_player_random (player : Player.t) =
   let dice_roll = roll_dice () in
   Printf.printf "%s moved %d spots \n%!" (Player.get_name player) dice_roll;
-  Player.(set_position player ((get_position player + dice_roll) mod 22))
+  Player.(set_position player ((get_position player + dice_roll) mod 40))
 
 (** [query_player player] queries the respective player to roll the dice *)
 let query_player (player : Player.t) =
   Printf.printf "%s, Roll the dice by pressing \"ENTER\": %!"
     (Player.get_name player);
-  let the_input = read_line () in
-  the_input = ""
+  let _ = read_line () in
+  ()
 
 (** [check_game_continue p1 p2 p3 p4] returns whether more than 1 players are
     left with money in their account.*)
@@ -204,16 +206,15 @@ let buy_property (player : Player.t) (property : Property.t) =
   ANSITerminal.(printf [] " for %s: " prop_cost);
   let the_input = read_line () in
   if the_input = "b" then begin
-    if Player.has_set player prop_color then Property.upgrade_level property;
-    if Player.get_money player > Property.get_cost property then (
-      let p =
-        Player.add_property
-          (Player.remove_money player (Property.get_cost property))
-          property
+    bought_railroad player property;
+    if Player.get_money player > Property.get_cost property then
+      let () =
+        if Player.has_set player prop_color then Property.upgrade_level property
+        else ()
       in
-      bought_utility p property;
-      bought_railroad p property;
-      p)
+      Player.add_property
+        (Player.remove_money player (Property.get_cost property))
+        property
     else begin
       Printf.printf "Insufficient funds to purchase %s" prop_name;
       let _ = read_line () in
@@ -236,19 +237,7 @@ let pay_utility property =
     pay their remaining money to [owner] and [player] is now bankrupt*)
 let pay_rent (player : Player.t) (owner : Player.t) (property : Property.t) =
   let balance = Player.get_money player in
-  let color = Property.get_color property in
-  (* rent is doubled if player owns a set of the properties color*)
-  let rent =
-    if color = [ default ] then pay_utility property
-    else if Player.has_set owner color then 2 * Property.get_rent property
-    else Property.get_rent property
-  in
-  Printf.printf "%s landed on %s and owes %d to %s. %!" (Player.get_name player)
-    (Property.get_name property)
-    rent (Player.get_name owner);
-  print_endline "";
-  print_string [] "\nPress \"ENTER\" to continue: ";
-  let _ = read_line () in
+  let rent = Property.get_rent property in
   let price = if balance < rent then balance else rent in
   let new_player = Player.remove_money player price in
   let new_owner = Player.add_money owner price in
@@ -274,13 +263,126 @@ let land_on_prop property player p1 p2 p3 p4 =
       else pay_rent player x property
   | None -> (buy_property player property, player)
 
-(** [land_on_go p1 p2 p3 p4 turn game_loop] prints tells the player they landed
-    on GO!. *)
-let land_on_go p1 p2 p3 p4 turn game_loop =
-  Printf.printf "You landed on GO, take a break!\n";
+(** [send_message message p1 p2 p3 p4 turn game_loop] sends the player a message
+    and asks them to press enter before continuing. *)
+let send_message message =
+  Printf.printf "%s\n" message;
   Printf.printf "\nPress \"ENTER\" to continue: %!";
   let _ = read_line () in
-  game_loop p1 p2 p3 p4 (turn + 1)
+  ()
+
+(** [land_on_go p1 p2 p3 p4 turn game_loop] handles the player landing on the GO
+    square. *)
+let land_on_go player =
+  send_message "You landed on GO, take a break!";
+  player
+
+(** [land_on_chest player] handles the player landing on the Community Chest
+    squares. *)
+let land_on_chest player = player
+
+(** [land_on_chance player] handles the player landing on the Chance squares. *)
+let land_on_chance player = player
+
+(** [land_on_tax player] handles the player landing on the Tax squares. *)
+let land_on_tax player tax =
+  if Player.get_money player <= tax then begin
+    free_parking_money := !free_parking_money + Player.get_money player;
+    send_message "You landed on a tax space, you're out of money!";
+    Player.empty
+  end
+  else begin
+    free_parking_money := !free_parking_money + tax;
+    send_message "You landed on a tax space!";
+    Player.remove_money player tax
+  end
+
+(** [land_on_free_parking player] handles the player landing on the Free Parking
+    square. *)
+let land_on_free_parking player =
+  let money = !free_parking_money in
+  free_parking_money := 0;
+  send_message "You landed on free parking, take some money!";
+  Player.add_money player money
+
+(** [land_on_GTJ player] handles the player landing on the Go To Jail square. *)
+let land_on_GTJ player =
+  send_message "You landed on Go To Jail, have fun!";
+  let player = Player.set_jail player true in
+  Player.set_position player 10
+
+(** [land_on_jail player] handles the player landing on the Jail square but they
+    are just visiting. *)
+let land_on_jail player =
+  send_message "You're visiting the Jail!";
+  player
+
+(** [special_square p1 p2 p3 p4 turn game_loop] handles landing on a unique game
+    square that is not a property, railroad, or utility. *)
+let special_square player property =
+  let name = Property.get_name property in
+  if name = "GO" then land_on_go player
+  else if name = "Community Chest" then land_on_chest player
+  else if name = "Chance" then land_on_chance player
+  else if name = "Income Tax" then land_on_tax player 200
+  else if name = "Luxury Tax" then land_on_tax player 100
+  else if name = "Free Parking" then land_on_free_parking player
+  else if name = "Go To Jail" then land_on_GTJ player
+  else if name = "Jail" then land_on_jail player
+  else (* Utilities *)
+    player
+
+(** [choose_roll player] handles if the [player] chose to roll the dice to get
+    out of jail. *)
+let choose_roll player =
+  let () = Random.self_init () in
+  let roll = Random.int 6 in
+  if roll = 0 then
+    let () = Printf.printf "You rolled doubles and made it out of Jail!\n" in
+    Player.set_jail player false
+  else
+    let () = Printf.printf "You didn't roll doubles, you stay in Jail!" in
+    if Player.get_rounds_in_jail player <= 2 then begin
+      Printf.printf "\npress \"ENTER\" to continue: %!";
+      let _ = read_line () in
+      player
+    end
+    else
+      let () =
+        Printf.printf "\nThat was your third chance, you must pay $50!\n"
+      in
+      let player = Player.remove_money player 50 in
+      if Player.get_money player <= 0 then Player.empty
+      else Player.set_jail player false
+
+(** [handle_jail player] checks whether or not a [player] is in jail and deals
+    with it accordingly. *)
+let handle_jail player =
+  if not (Player.is_in_jail player) then player
+  else
+    let player =
+      Player.set_rounds_in_jail player (Player.get_rounds_in_jail player + 1)
+    in
+    Printf.printf
+      "%s, you are in jail, type 'roll' to roll the dice to get out. You need \
+       to get doubles to do so or else you stay in jail. Or you can pay $50 \
+       dollars to exit jail right now by typing 'pay'. If you are still in \
+       jail after 3 rolls you must pay the $50."
+      (Player.get_name player);
+    let rec loop () =
+      Printf.printf "\nType your choice and press \"ENTER\" to continue: %!";
+      let choice = read_line () in
+      if choice = "roll" then choose_roll player
+      else if choice = "pay" then begin
+        Printf.printf "\n%s paid their way out of Jail!\n"
+          (Player.get_name player);
+        let player = Player.remove_money player 50 in
+        if Player.get_money player <= 0 then Player.empty
+        else Player.set_jail player false
+      end
+      else loop ()
+    in
+    loop ()
 
 (** [get_property_by_name prop_name] is the property with the [prop_name] inside
     of the global property list. *)
@@ -344,101 +446,121 @@ let pass_go p old_pos =
     it is p1's turn. *)
 let p1_turn p1 p2 p3 p4 turn game_loop =
   if p1 = Player.empty then game_loop p1 p2 p3 p4 (turn + 1)
-  else if not (query_player p1) then game_loop p1 p2 p3 p4 (turn + 1)
   else
-    let old_pos = Player.get_position p1 in
-    let p1 = move_player_random p1 in
-    let p1 = pass_go p1 old_pos in
-    let property = check_property_at_pos (Player.get_position p1) in
-    if Property.get_name property = "GO!" then
-      land_on_go p1 p2 p3 p4 turn game_loop
-    else
-      let result = land_on_prop property p1 p1 p2 p3 p4 in
-      let p1 = fst result in
-      let p1 = check_set p1 in
-      if owns_property property p1 then game_loop p1 p2 p3 p4 (turn + 1)
-      else if owns_property property p2 then
-        game_loop p1 (snd result) p3 p4 (turn + 1)
-      else if owns_property property p3 then
-        game_loop p1 p2 (snd result) p4 (turn + 1)
-      else if owns_property property p4 then
-        game_loop p1 p2 p3 (snd result) (turn + 1)
-      else game_loop p1 p2 p3 p4 (turn + 1)
+    let p1 = handle_jail p1 in
+    if not (Player.is_in_jail p1) then begin
+      query_player p1;
+      let old_pos = Player.get_position p1 in
+      let p1 = move_player_random p1 in
+      let p1 = pass_go p1 old_pos in
+      let property = check_property_at_pos (Player.get_position p1) in
+      if Property.get_color property = [ default ] then
+        let p1 = special_square p1 property in
+        game_loop p1 p2 p3 p4 (turn + 1)
+      else
+        let result = land_on_prop property p1 p1 p2 p3 p4 in
+        let p1 = fst result in
+        let p1 = check_set p1 in
+        if owns_property property p1 then game_loop p1 p2 p3 p4 (turn + 1)
+        else if owns_property property p2 then
+          game_loop p1 (snd result) p3 p4 (turn + 1)
+        else if owns_property property p3 then
+          game_loop p1 p2 (snd result) p4 (turn + 1)
+        else if owns_property property p4 then
+          game_loop p1 p2 p3 (snd result) (turn + 1)
+        else game_loop p1 p2 p3 p4 (turn + 1)
+    end
+    else game_loop p1 p2 p3 p4 (turn + 1)
 
 (** [p2_turn p1 p2 p3 p4 game_loop] is a helper function to the game loop when
     it is p2's turn. *)
 let p2_turn p1 p2 p3 p4 turn game_loop =
   if p2 = Player.empty then game_loop p1 p2 p3 p4 (turn + 1)
-  else if not (query_player p2) then game_loop p1 p2 p3 p4 (turn + 1)
   else
-    let old_pos = Player.get_position p2 in
-    let p2 = move_player_random p2 in
-    let p2 = pass_go p2 old_pos in
-    let property = check_property_at_pos (Player.get_position p2) in
-    if Property.get_name property = "GO!" then
-      land_on_go p1 p2 p3 p4 turn game_loop
-    else
-      let result = land_on_prop property p2 p1 p2 p3 p4 in
-      let p2 = fst result in
-      let p2 = check_set p2 in
-      if owns_property property p2 then game_loop p1 p2 p3 p4 (turn + 1)
-      else if owns_property property p1 then
-        game_loop (snd result) p2 p3 p4 (turn + 1)
-      else if owns_property property p3 then
-        game_loop p1 p2 (snd result) p4 (turn + 1)
-      else if owns_property property p4 then
-        game_loop p1 p2 p3 (snd result) (turn + 1)
-      else game_loop p1 p2 p3 p4 (turn + 1)
+    let p2 = handle_jail p2 in
+    if not (Player.is_in_jail p2) then begin
+      query_player p2;
+      let old_pos = Player.get_position p2 in
+      let p2 = move_player_random p2 in
+      let p2 = pass_go p2 old_pos in
+      let property = check_property_at_pos (Player.get_position p2) in
+      if Property.get_color property = [ default ] then
+        let p2 = special_square p2 property in
+        game_loop p1 p2 p3 p4 (turn + 1)
+      else
+        let result = land_on_prop property p2 p1 p2 p3 p4 in
+        let p2 = fst result in
+        let p2 = check_set p2 in
+        if owns_property property p2 then game_loop p1 p2 p3 p4 (turn + 1)
+        else if owns_property property p1 then
+          game_loop (snd result) p2 p3 p4 (turn + 1)
+        else if owns_property property p3 then
+          game_loop p1 p2 (snd result) p4 (turn + 1)
+        else if owns_property property p4 then
+          game_loop p1 p2 p3 (snd result) (turn + 1)
+        else game_loop p1 p2 p3 p4 (turn + 1)
+    end
+    else game_loop p1 p2 p3 p4 (turn + 1)
 
 (** [p3_turn p1 p2 p3 p4 game_loop] is a helper function to the game loop when
     it is p3's turn. *)
 let p3_turn p1 p2 p3 p4 turn game_loop =
   if p3 = Player.empty then game_loop p1 p2 p3 p4 (turn + 1)
-  else if not (query_player p3) then game_loop p1 p2 p3 p4 (turn + 1)
   else
-    let old_pos = Player.get_position p3 in
-    let p3 = move_player_random p3 in
-    let p3 = pass_go p3 old_pos in
-    let property = check_property_at_pos (Player.get_position p3) in
-    if Property.get_name property = "GO!" then
-      land_on_go p1 p2 p3 p4 turn game_loop
-    else
-      let result = land_on_prop property p3 p1 p2 p3 p4 in
-      let p3 = fst result in
-      let p3 = check_set p3 in
-      if owns_property property p3 then game_loop p1 p2 p3 p4 (turn + 1)
-      else if owns_property property p1 then
-        game_loop (snd result) p2 p3 p4 (turn + 1)
-      else if owns_property property p2 then
-        game_loop p1 (snd result) p3 p4 (turn + 1)
-      else if owns_property property p4 then
-        game_loop p1 p2 p3 (snd result) (turn + 1)
-      else game_loop p1 p2 p3 p4 (turn + 1)
+    let p3 = handle_jail p3 in
+    if not (Player.is_in_jail p3) then begin
+      query_player p3;
+      let old_pos = Player.get_position p3 in
+      let p3 = move_player_random p3 in
+      let p3 = pass_go p3 old_pos in
+      let property = check_property_at_pos (Player.get_position p3) in
+      if Property.get_color property = [ default ] then
+        let p3 = special_square p3 property in
+        game_loop p1 p2 p3 p4 (turn + 1)
+      else
+        let result = land_on_prop property p3 p1 p2 p3 p4 in
+        let p3 = fst result in
+        let p3 = check_set p3 in
+        if owns_property property p3 then game_loop p1 p2 p3 p4 (turn + 1)
+        else if owns_property property p1 then
+          game_loop (snd result) p2 p3 p4 (turn + 1)
+        else if owns_property property p2 then
+          game_loop p1 (snd result) p3 p4 (turn + 1)
+        else if owns_property property p4 then
+          game_loop p1 p2 p3 (snd result) (turn + 1)
+        else game_loop p1 p2 p3 p4 (turn + 1)
+    end
+    else game_loop p1 p2 p3 p4 (turn + 1)
 
 (** [p4_turn p1 p2 p3 p4 game_loop] is a helper function to the game loop when
     it is p4's turn. *)
 let p4_turn p1 p2 p3 p4 turn game_loop =
   if p4 = Player.empty then game_loop p1 p2 p3 p4 (turn + 1)
-  else if not (query_player p4) then game_loop p1 p2 p3 p4 (turn + 1)
   else
-    let old_pos = Player.get_position p4 in
-    let p4 = move_player_random p4 in
-    let p4 = pass_go p4 old_pos in
-    let property = check_property_at_pos (Player.get_position p4) in
-    if Property.get_name property = "GO!" then
-      land_on_go p1 p2 p3 p4 turn game_loop
-    else
-      let result = land_on_prop property p4 p1 p2 p3 p4 in
-      let p4 = fst result in
-      let p4 = check_set p4 in
-      if owns_property property p4 then game_loop p1 p2 p3 p4 (turn + 1)
-      else if owns_property property p1 then
-        game_loop (snd result) p2 p3 p4 (turn + 1)
-      else if owns_property property p2 then
-        game_loop p1 (snd result) p3 p4 (turn + 1)
-      else if owns_property property p3 then
-        game_loop p1 p2 (snd result) p4 (turn + 1)
-      else game_loop p1 p2 p3 p4 (turn + 1)
+    let p2 = handle_jail p4 in
+    if not (Player.is_in_jail p4) then begin
+      query_player p4;
+      let old_pos = Player.get_position p4 in
+      let p4 = move_player_random p4 in
+      let p4 = pass_go p4 old_pos in
+      let property = check_property_at_pos (Player.get_position p4) in
+      if Property.get_color property = [ default ] then
+        let p4 = special_square p4 property in
+        game_loop p1 p2 p3 p4 (turn + 1)
+      else
+        let result = land_on_prop property p4 p1 p2 p3 p4 in
+        let p4 = fst result in
+        let p4 = check_set p4 in
+        if owns_property property p4 then game_loop p1 p2 p3 p4 (turn + 1)
+        else if owns_property property p1 then
+          game_loop (snd result) p2 p3 p4 (turn + 1)
+        else if owns_property property p2 then
+          game_loop p1 (snd result) p3 p4 (turn + 1)
+        else if owns_property property p3 then
+          game_loop p1 p2 (snd result) p4 (turn + 1)
+        else game_loop p1 p2 p3 p4 (turn + 1)
+    end
+    else game_loop p1 p2 p3 p4 (turn + 1)
 
 (** [game_loop p1 p2 p3 p4 turn] continously runs the game until it is over.
     [turn] keeps track of which player's turn it is. *)
