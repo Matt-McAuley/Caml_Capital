@@ -46,3 +46,6 @@ val create_property :
 
 val upgrade_level : t -> unit
 (** [upgrade_level p] is the property [p] with its level upgraded. *)
+
+val get_level : t -> int
+(** [get_level p] returns the level of the property. *)

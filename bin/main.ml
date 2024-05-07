@@ -157,24 +157,40 @@ let check_property_at_pos pos = List.nth property_list pos
 let owns_property prop player =
   if List.mem prop (Player.get_properties player) then true else false
 
-(** [bought_railroad player] upgrades the rent of the railroads when a player
-    owns multiple. *)
+(** [bought_railroad player property] upgrades the rent of the railroads when a
+    player owns multiple. *)
 let bought_railroad player property =
-  if Property.get_color property = [ white ] then
+  if Property.get_color property = [ white ] then (
     let property_list = Player.get_properties player in
     let railroad_list =
       List.filter
         (fun property -> Property.get_color property = [ white ])
         property_list
     in
-    let rec upgrade_railroads railroad_list =
-      match railroad_list with
-      | [] -> ()
-      | h :: t ->
-          Property.upgrade_level h;
-          upgrade_railroads t
+    List.iter (fun x -> print_endline (Property.get_name x)) property_list;
+    let rec upgrade_to_level l p =
+      if Property.get_level p < l then (
+        Property.upgrade_level p;
+        upgrade_to_level l p)
+      else ()
     in
-    upgrade_railroads railroad_list
+    List.iter (upgrade_to_level (List.length railroad_list)) railroad_list)
+  else ()
+
+(** [bought_utility player property] upgrades the rent of the utility properties
+    when a player owns both. *)
+let bought_utility player property =
+  if Property.get_color property = [ default ] then
+    let property_list = Player.get_properties player in
+    let utility_list =
+      List.filter
+        (fun property -> Property.get_color property = [ default ])
+        property_list
+    in
+    if List.length utility_list = 2 then
+      List.iter Property.upgrade_level utility_list
+    else ()
+  else ()
 
 (** [buy_property player property] allows the player to purchase the property
     they landed on if they choose to do so. If [player] does not have sufficient
@@ -188,12 +204,16 @@ let buy_property (player : Player.t) (property : Property.t) =
   ANSITerminal.(printf [] " for %s: " prop_cost);
   let the_input = read_line () in
   if the_input = "b" then begin
-    bought_railroad player property;
     if Player.has_set player prop_color then Property.upgrade_level property;
-    if Player.get_money player > Property.get_cost property then
-      Player.add_property
-        (Player.remove_money player (Property.get_cost property))
-        property
+    if Player.get_money player > Property.get_cost property then (
+      let p =
+        Player.add_property
+          (Player.remove_money player (Property.get_cost property))
+          property
+      in
+      bought_utility p property;
+      bought_railroad p property;
+      p)
     else begin
       Printf.printf "Insufficient funds to purchase %s" prop_name;
       let _ = read_line () in
@@ -203,26 +223,32 @@ let buy_property (player : Player.t) (property : Property.t) =
   end
   else player
 
+(** [pay_utility property] returns the rent that a player who lands on a utility
+    pays. *)
+let pay_utility property =
+  if Property.get_level property = 2 then 10 * roll_dice ()
+  else 4 * roll_dice ()
+
 (** [pay_rent player owner property] is the tuple of [(player, owner)] where
     their respective bank accounts have been adjusted according to the rent.
     [player] pays [owner] the price of rent of [property] if they have
     sufficient funds. If [player] does not have enough money to cover rent, they
     pay their remaining money to [owner] and [player] is now bankrupt*)
 let pay_rent (player : Player.t) (owner : Player.t) (property : Property.t) =
-  Printf.printf "%s landed on %s and owes %d to %s. %!" (Player.get_name player)
-    (Property.get_name property)
-    (Property.get_rent property)
-    (Player.get_name owner);
-  print_endline "";
-  print_string [] "\nPress \"ENTER\" to continue: ";
-  let _ = read_line () in
   let balance = Player.get_money player in
   let color = Property.get_color property in
   (* rent is doubled if player owns a set of the properties color*)
   let rent =
-    if Player.has_set owner color then 2 * Property.get_rent property
+    if color = [ default ] then pay_utility property
+    else if Player.has_set owner color then 2 * Property.get_rent property
     else Property.get_rent property
   in
+  Printf.printf "%s landed on %s and owes %d to %s. %!" (Player.get_name player)
+    (Property.get_name property)
+    rent (Player.get_name owner);
+  print_endline "";
+  print_string [] "\nPress \"ENTER\" to continue: ";
+  let _ = read_line () in
   let price = if balance < rent then balance else rent in
   let new_player = Player.remove_money player price in
   let new_owner = Player.add_money owner price in
