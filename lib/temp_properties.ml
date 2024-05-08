@@ -37,7 +37,7 @@ let stcharlesplace =
     750 70
 
 let electric_company =
-  create_property "Electric Company" 12 0 0 [ default ] 0 0 0 0 0 0 0
+  create_property "Electric Company" 12 150 0 [ default ] 0 0 0 0 0 0 0
 
 let statesave =
   create_property "States Avenue" 13 140 10 [ magenta ] 100 50 150 450 625 750
@@ -93,7 +93,8 @@ let ventnorave =
   create_property "Ventnor Avenue" 27 260 22 [ yellow ] 150 110 330 800 975 1150
     130
 
-let water_works = create_property "Water Works" 28 0 0 [ default ] 0 0 0 0 0 0 0
+let water_works =
+  create_property "Water Works" 28 150 0 [ default ] 0 0 0 0 0 0 0
 
 let marvingardens =
   create_property "Marvin Gardens" 29 280 22 [ yellow ] 150 120 360 850 1025

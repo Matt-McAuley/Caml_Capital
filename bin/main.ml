@@ -242,11 +242,17 @@ let pay_utility property =
     sufficient funds. If [player] does not have enough money to cover rent, they
     pay their remaining money to [owner] and [player] is now bankrupt*)
 let pay_rent (player : Player.t) (owner : Player.t) (property : Property.t) =
-  let balance = Player.get_money player in
   let rent =
     if Property.get_color property = [ default ] then pay_utility property
     else Property.get_rent property
   in
+  Printf.printf "%s landed on %s and owes %d to %s. %!" (Player.get_name player)
+    (Property.get_name property)
+    rent (Player.get_name owner);
+  print_endline "";
+  print_string [] "\nPress \"ENTER\" to continue: ";
+  let _ = read_line () in
+  let balance = Player.get_money player in
   let price = if balance < rent then balance else rent in
   let new_player = Player.remove_money player price in
   let new_owner = Player.add_money owner price in
@@ -463,7 +469,11 @@ let p1_turn p1 p2 p3 p4 turn game_loop =
       let p1 = move_player_random p1 in
       let p1 = pass_go p1 old_pos in
       let property = check_property_at_pos (Player.get_position p1) in
-      if Property.get_color property = [ default ] then
+      if
+        Property.get_color property = [ default ]
+        && Property.get_pos property != 12
+        && Property.get_pos property != 28
+      then
         let p1 = special_square p1 property in
         game_loop p1 p2 p3 p4 (turn + 1)
       else
@@ -493,7 +503,11 @@ let p2_turn p1 p2 p3 p4 turn game_loop =
       let p2 = move_player_random p2 in
       let p2 = pass_go p2 old_pos in
       let property = check_property_at_pos (Player.get_position p2) in
-      if Property.get_color property = [ default ] then
+      if
+        Property.get_color property = [ default ]
+        && Property.get_pos property != 12
+        && Property.get_pos property != 28
+      then
         let p2 = special_square p2 property in
         game_loop p1 p2 p3 p4 (turn + 1)
       else
@@ -523,7 +537,11 @@ let p3_turn p1 p2 p3 p4 turn game_loop =
       let p3 = move_player_random p3 in
       let p3 = pass_go p3 old_pos in
       let property = check_property_at_pos (Player.get_position p3) in
-      if Property.get_color property = [ default ] then
+      if
+        Property.get_color property = [ default ]
+        && Property.get_pos property != 12
+        && Property.get_pos property != 28
+      then
         let p3 = special_square p3 property in
         game_loop p1 p2 p3 p4 (turn + 1)
       else
@@ -553,7 +571,11 @@ let p4_turn p1 p2 p3 p4 turn game_loop =
       let p4 = move_player_random p4 in
       let p4 = pass_go p4 old_pos in
       let property = check_property_at_pos (Player.get_position p4) in
-      if Property.get_color property = [ default ] then
+      if
+        Property.get_color property = [ default ]
+        && Property.get_pos property != 12
+        && Property.get_pos property != 28
+      then
         let p4 = special_square p4 property in
         game_loop p1 p2 p3 p4 (turn + 1)
       else
