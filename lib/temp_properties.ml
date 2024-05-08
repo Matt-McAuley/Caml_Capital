@@ -36,92 +36,98 @@ let stcharlesplace =
   create_property "St. Charles Place" 11 140 10 [ magenta ] 100 50 150 450 625
     750 70
 
-(* Default for now, change later *)
 let electric_company =
   create_property "Electric Company" 12 0 0 [ default ] 0 0 0 0 0 0 0
 
 let statesave =
-  create_property "States Avenue" 8 140 10 [ magenta ] 100 50 150 450 625 750 70
+  create_property "States Avenue" 13 140 10 [ magenta ] 100 50 150 450 625 750
+    70
 
 let virginiaave =
-  create_property "Virginia Avenue" 9 160 12 [ magenta ] 100 60 180 500 700 900
+  create_property "Virginia Avenue" 14 160 12 [ magenta ] 100 60 180 500 700 900
     80
 
 let pennsylvania_railroad =
-  create_property "Pennsylvania Railroad" 10 200 25 [ white ] 50 100 200 0 0 0
+  create_property "Pennsylvania Railroad" 15 200 25 [ white ] 50 100 200 0 0 0
     100
 
 let stjamesplace =
-  create_property "St. James Place" 11 180 14 [ red; on_yellow ] 100 70 200 550
+  create_property "St. James Place" 16 180 14 [ red; on_yellow ] 100 70 200 550
     750 950 90
 
 let community_chest2 =
   create_property "Community Chest" 17 0 0 [ default ] 0 0 0 0 0 0 0
 
 let tennesseeave =
-  create_property "Tennessee Avenue" 12 180 14 [ red; on_yellow ] 100 70 200 550
+  create_property "Tennessee Avenue" 18 180 14 [ red; on_yellow ] 100 70 200 550
     750 950 90
 
 let newyorkave =
-  create_property "New York Avenue" 13 200 16 [ red; on_yellow ] 100 80 220 600
+  create_property "New York Avenue" 19 200 16 [ red; on_yellow ] 100 80 220 600
     800 1000 100
 
 let free_parking =
   create_property "Free Parking" 20 0 0 [ default ] 0 0 0 0 0 0 0
 
 let kentuckyave =
-  create_property "Kentucky Avenue" 14 220 18 [ red ] 150 90 250 700 875 1050
+  create_property "Kentucky Avenue" 21 220 18 [ red ] 150 90 250 700 875 1050
     110
 
 let chance2 = create_property "Chance" 22 0 0 [ default ] 0 0 0 0 0 0 0
 
 let indianaave =
-  create_property "Indiana Avenue" 15 220 18 [ red ] 150 90 250 700 875 1050 110
+  create_property "Indiana Avenue" 23 220 18 [ red ] 150 90 250 700 875 1050 110
 
 let illinoisave =
-  create_property "Illinois Avenue" 16 240 20 [ red ] 150 100 300 750 925 1100
+  create_property "Illinois Avenue" 24 240 20 [ red ] 150 100 300 750 925 1100
     120
 
 let bo_railroad =
-  create_property "B. & O. Railroad" 17 200 25 [ white ] 50 100 200 0 0 0 100
+  create_property "B. & O. Railroad" 25 200 25 [ white ] 50 100 200 0 0 0 100
 
 let atlanticave =
-  create_property "Atlantic Avenue" 18 260 22 [ yellow ] 150 110 330 800 975
+  create_property "Atlantic Avenue" 26 260 22 [ yellow ] 150 110 330 800 975
     1150 130
 
 let ventnorave =
-  create_property "Ventnor Avenue" 19 260 22 [ yellow ] 150 110 330 800 975 1150
+  create_property "Ventnor Avenue" 27 260 22 [ yellow ] 150 110 330 800 975 1150
     130
 
+let water_works = create_property "Water Works" 28 0 0 [ default ] 0 0 0 0 0 0 0
+
 let marvingardens =
-  create_property "Marvin Gardens" 20 280 22 [ yellow ] 150 120 360 850 1025
+  create_property "Marvin Gardens" 29 280 22 [ yellow ] 150 120 360 850 1025
     1200 140
 
 let go_to_jail = create_property "Go To Jail" 30 0 0 [ default ] 0 0 0 0 0 0 0
 
 let pacificave =
-  create_property "Pacific Avenue" 21 300 26 [ green ] 200 130 390 900 1100 1275
+  create_property "Pacific Avenue" 31 300 26 [ green ] 200 130 390 900 1100 1275
     150
 
 let northcarolinaave =
-  create_property "North Carolina Avenue" 22 300 26 [ green ] 200 130 390 900
+  create_property "North Carolina Avenue" 32 300 26 [ green ] 200 130 390 900
     1100 1275 150
 
 let community_chest3 =
   create_property "Community Chest" 33 0 0 [ default ] 0 0 0 0 0 0 0
 
 let pennsylvaniaave =
-  create_property "Pennsylvania Avenue" 23 320 28 [ green ] 200 150 450 1000
+  create_property "Pennsylvania Avenue" 34 320 28 [ green ] 200 150 450 1000
     1200 1400 160
 
 let shortline_railroad =
-  create_property "Short Line Railroad" 24 200 25 [ white ] 50 100 200 0 0 0 100
+  create_property "Short Line Railroad" 35 200 25 [ white ] 50 100 200 0 0 0 100
+
+let chance3 = create_property "Chance" 36 0 0 [ default ] 0 0 0 0 0 0 0
 
 let parkplace =
-  create_property "Park Place" 21 350 35 [ blue ] 200 175 500 1100 1300 1500 175
+  create_property "Park Place" 37 350 35 [ blue ] 200 175 500 1100 1300 1500 175
+
+let luxury_tax = create_property "Luxury Tax" 38 0 0 [ default ] 0 0 0 0 0 0 0
 
 let boardwalk =
-  create_property "Boardwalk" 22 400 50 [ blue ] 200 200 600 1400 1700 2000 200
+  create_property "Boardwalk" 39 400 50 [ blue ] 200 200 600 1400 1700 2000 200
 
 let property_list =
   [

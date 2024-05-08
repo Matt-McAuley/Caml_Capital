@@ -206,7 +206,13 @@ let buy_property (player : Player.t) (property : Property.t) =
   ANSITerminal.(printf [] " for %s: " prop_cost);
   let the_input = read_line () in
   if the_input = "b" then begin
-    bought_railroad player property;
+    let p =
+      Player.add_property
+        (Player.remove_money player (Property.get_cost property))
+        property
+    in
+    bought_railroad p property;
+    bought_utility p property;
     if Player.get_money player > Property.get_cost property then
       let () =
         if Player.has_set player prop_color then Property.upgrade_level property
@@ -237,7 +243,10 @@ let pay_utility property =
     pay their remaining money to [owner] and [player] is now bankrupt*)
 let pay_rent (player : Player.t) (owner : Player.t) (property : Property.t) =
   let balance = Player.get_money player in
-  let rent = Property.get_rent property in
+  let rent =
+    if Property.get_color property = [ default ] then pay_utility property
+    else Property.get_rent property
+  in
   let price = if balance < rent then balance else rent in
   let new_player = Player.remove_money player price in
   let new_owner = Player.add_money owner price in
