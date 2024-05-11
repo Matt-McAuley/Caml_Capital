@@ -592,7 +592,7 @@ let p3_turn p1 p2 p3 p4 turn game_loop =
 let p4_turn p1 p2 p3 p4 turn game_loop =
   if p4 = Player.empty then game_loop p1 p2 p3 p4 (turn + 1)
   else
-    let p2 = handle_jail p4 in
+    let p4 = handle_jail p4 in
     if not (Player.is_in_jail p4) then begin
       query_player p4;
       let old_pos = Player.get_position p4 in
