@@ -8,6 +8,9 @@ Buying Properties: Interested in a property you've landed on? Type "BUY" to make
 
 Game Objective: Be cautious with your finances! The game ends when a player goes bankrupt. Aim to be the last mogul standing to win.
 
+Dev Mode: For developers and cheaters alike! This mode allows the players to choose which position they want to move to. Enter it by typing "DEV" in
+start screen!
+
 Best of luck in your real estate endeavors in Caml Capital!
  
 ----------------------------------------------------------------------------------------------------------------------------------------------------

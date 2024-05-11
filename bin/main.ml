@@ -3,6 +3,7 @@ open Temp_properties
 open ANSITerminal
 
 let free_parking_money = ref 0
+let dev_mode = ref false
 
 (** [print_logo] is the interface with the following format: Position on board:
     <users> Money for each player: <users> Properties owned: <users> printed to
@@ -31,6 +32,18 @@ let print_help () =
     with End_of_file -> close_in file
   in
   print_file "data/help.txt"
+
+let print_dev () =
+  let print_file filename =
+    let file = open_in filename in
+    try
+      while true do
+        let line = input_line file in
+        print_endline line
+      done
+    with End_of_file -> close_in file
+  in
+  print_file "data/dev.txt"
 
 (** [plist_to_str plist] converts the property list [plist] to a string. *)
 let plist_to_str (plist : Property.t list) =
@@ -457,6 +470,15 @@ let check_set player =
 let pass_go p old_pos =
   if Player.get_position p < old_pos then Player.add_money p 200 else p
 
+let go_to_pos (player : Player.t) =
+  Printf.printf "\nPosition would you like to fast-travel to: %!";
+  let pos = read_line () in
+  let property =
+    Property.get_name (check_property_at_pos (int_of_string pos))
+  in
+  Printf.printf "%s teleported to %s\n%!" (Player.get_name player) property;
+  Player.set_position player (int_of_string pos)
+
 (** [p1_turn p1 p2 p3 p4 game_loop] is a helper function to the game loop when
     it is p1's turn. *)
 let p1_turn p1 p2 p3 p4 turn game_loop =
@@ -466,7 +488,9 @@ let p1_turn p1 p2 p3 p4 turn game_loop =
     if not (Player.is_in_jail p1) then begin
       query_player p1;
       let old_pos = Player.get_position p1 in
-      let p1 = move_player_random p1 in
+      let p1 =
+        if !dev_mode = true then go_to_pos p1 else move_player_random p1
+      in
       let p1 = pass_go p1 old_pos in
       let property = check_property_at_pos (Player.get_position p1) in
       if
@@ -500,7 +524,9 @@ let p2_turn p1 p2 p3 p4 turn game_loop =
     if not (Player.is_in_jail p2) then begin
       query_player p2;
       let old_pos = Player.get_position p2 in
-      let p2 = move_player_random p2 in
+      let p2 =
+        if !dev_mode = true then go_to_pos p2 else move_player_random p2
+      in
       let p2 = pass_go p2 old_pos in
       let property = check_property_at_pos (Player.get_position p2) in
       if
@@ -534,7 +560,9 @@ let p3_turn p1 p2 p3 p4 turn game_loop =
     if not (Player.is_in_jail p3) then begin
       query_player p3;
       let old_pos = Player.get_position p3 in
-      let p3 = move_player_random p3 in
+      let p3 =
+        if !dev_mode = true then go_to_pos p3 else move_player_random p3
+      in
       let p3 = pass_go p3 old_pos in
       let property = check_property_at_pos (Player.get_position p3) in
       if
@@ -568,7 +596,9 @@ let p4_turn p1 p2 p3 p4 turn game_loop =
     if not (Player.is_in_jail p4) then begin
       query_player p4;
       let old_pos = Player.get_position p4 in
-      let p4 = move_player_random p4 in
+      let p4 =
+        if !dev_mode = true then go_to_pos p4 else move_player_random p4
+      in
       let p4 = pass_go p4 old_pos in
       let property = check_property_at_pos (Player.get_position p4) in
       if
@@ -612,7 +642,6 @@ let rec game_loop (p1 : Player.t) (p2 : Player.t) (p3 : Player.t)
 let run_game p1 p2 p3 p4 = game_loop p1 p2 p3 p4 1
 
 let initialize_game () =
-  let _ = Sys.command "clear" in
   let () = print_string [] "Player1 type your name: " in
   let p1 = make_player () in
   (* Create player 2*)
@@ -637,11 +666,29 @@ let () =
       "\nPress \"ENTER\" to begin the game or \"HELP\" for instructions: "
   in
   let the_input = read_line () in
-  if the_input = "" then initialize_game ()
+  if the_input = "" then begin
+    let _ = Sys.command "clear" in
+    initialize_game ()
+  end
+  else if the_input = "DEV" then begin
+    dev_mode := true;
+    let _ = Sys.command "clear" in
+    print_dev ();
+    initialize_game ()
+  end
   else if the_input = "HELP" then begin
     let _ = Sys.command "clear" in
     print_help ();
     let () = print_string [] "\nPress \"ENTER\" to begin the game: " in
     let the_input = read_line () in
-    if the_input = "" then initialize_game ()
+    if the_input = "" then begin
+      let _ = Sys.command "clear" in
+      initialize_game ()
+    end
+    else if the_input = "DEV" then begin
+      dev_mode := true;
+      let _ = Sys.command "clear" in
+      print_dev ();
+      initialize_game ()
+    end
   end
