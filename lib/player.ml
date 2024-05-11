@@ -30,16 +30,6 @@ let create_player name =
 let is_empty player =
   player.name = "" && player.position = -1 && player.money = -1
 
-let create_player name =
-  {
-    name;
-    position = 0;
-    properties = [];
-    money = 1500;
-    in_jail = false;
-    rounds_in_jail = 0;
-  }
-
 let get_name player = player.name
 let get_position player = player.position
 

@@ -291,13 +291,40 @@ let land_on_prop property player p1 p2 p3 p4 =
       else pay_rent player x property
   | None -> (buy_property player property, player)
 
-(** [send_message message p1 p2 p3 p4 turn game_loop] sends the player a message
-    and asks them to press enter before continuing. *)
+(** [send_message message] sends the player a message and asks them to press
+    enter before continuing. *)
 let send_message message =
   Printf.printf "%s\n" message;
   Printf.printf "\nPress \"ENTER\" to continue: %!";
   let _ = read_line () in
   ()
+
+(** [get_property_by_name prop_name] is the property with the [prop_name] inside
+    of the global property list. *)
+let get_property_by_name prop_name =
+  match
+    List.filter
+      (fun x ->
+        String.lowercase_ascii (Property.get_name x)
+        = String.lowercase_ascii prop_name)
+      Temp_properties.property_list
+  with
+  | [] -> None
+  | h :: _ -> Some h
+
+(** Sets player's position to that of the property given by the property's name *)
+let teleport (player : Player.t) (property_name : string) =
+  let property = get_property_by_name property_name in
+  let position =
+    match property with
+    | None -> 0
+    | Some prop -> Property.get_pos prop
+  in
+  let current_position = Player.get_position player in
+  let p =
+    if current_position > position then Player.add_money player 200 else player
+  in
+  Player.set_position p position
 
 (** [land_on_go p1 p2 p3 p4 turn game_loop] handles the player landing on the GO
     square. *)
@@ -305,12 +332,157 @@ let land_on_go player =
   send_message "You landed on GO, take a break!";
   player
 
-(** [land_on_chest player] handles the player landing on the Community Chest
-    squares. *)
-let land_on_chest player = player
+(** [land_on_GTJ player] handles the player landing on the Go To Jail square. *)
+let land_on_GTJ player =
+  send_message "You landed on Go To Jail, have fun!";
+  let player = Player.set_jail player true in
+  Player.set_position player 10
 
-(** [land_on_chance player] handles the player landing on the Chance squares. *)
-let land_on_chance player = player
+(** [land_on_jail player] handles the player landing on the Jail square but they
+    are just visiting. *)
+let land_on_jail player =
+  send_message "You're visiting the Jail!";
+  player
+
+(** [land_on_chance player] handles the player landing on the Chance squares
+    squares. *)
+let land_on_chance player =
+  let go_to_boardwalk player =
+    send_message "Advance to Boardwalk.";
+    teleport player "Boardwalk"
+  in
+  let go_to_go player =
+    send_message "Advance to Go (Collect $200).";
+    teleport player "GO!"
+  in
+  let go_to_illinois player =
+    send_message "Advance to Illinois Avenue. If you pass Go, collect $200.";
+    teleport player "Illinois Avenue"
+  in
+  let go_to_stcharles player =
+    send_message "Advance to St. Charles Place. If you pass Go, collect $200.";
+    teleport player "St. Charles Place"
+  in
+  let go_to_jail player =
+    send_message
+      "Go to Jail. Go directly to Jail, do not pass Go, do not collect $200.";
+    land_on_GTJ player
+  in
+  let go_to_readingrailroad player =
+    send_message
+      "Take a trip to Reading Railroad. If you pass Go, collect $200.";
+    teleport player "Reading Railroad"
+  in
+  let bank_pay_50 player =
+    send_message "Bank pays you dividend of $50.";
+    Player.add_money player 50
+  in
+  let bank_pay_150 player =
+    send_message "Your building loan matures. Collect $150";
+    Player.add_money player 50
+  in
+  let pay_bank_50 player =
+    send_message
+      "You have been elected Chairman of the Board. Pay the bank $50.";
+    Player.remove_money player 50
+  in
+  let pay_bank_150 player =
+    send_message "Speeding fine $150.";
+    Player.remove_money player 150
+  in
+  let go_back_3 player =
+    send_message "Go Back 3 Spaces.";
+    Player.set_position player (Player.get_position player - 3)
+  in
+  let chest_cards =
+    [
+      go_to_boardwalk;
+      go_to_go;
+      go_to_illinois;
+      go_to_stcharles;
+      go_to_jail;
+      go_to_readingrailroad;
+      bank_pay_50;
+      bank_pay_150;
+      pay_bank_50;
+      pay_bank_150;
+      go_back_3;
+    ]
+  in
+  let () = Random.self_init () in
+  let card = Random.int 11 in
+  (List.nth chest_cards card) player
+
+(** [land_on_chest player] handles the player landing on the Community Chest. *)
+let land_on_chest player =
+  let go_to_go player =
+    send_message "Advance to Go (Collect $200).";
+    teleport player "GO!"
+  in
+  let go_to_jail player =
+    send_message
+      "Go to Jail. Go directly to Jail, do not pass Go, do not collect $200.";
+    land_on_GTJ player
+  in
+  let bank_pay_10 player =
+    send_message "You have won second prize in a beauty contest. Collect $10";
+    Player.add_money player 10
+  in
+  let bank_pay_20 player =
+    send_message "Income tax refund. Collect $20";
+    Player.add_money player 20
+  in
+  let bank_pay_50 player =
+    send_message "From sale of stock you get $50";
+    Player.add_money player 50
+  in
+  let bank_pay_100 player =
+    send_message "Holiday fund matures. Receive $100";
+    Player.add_money player 100
+  in
+  let bank_pay_200 player =
+    send_message "Bank error in your favor. Collect $200";
+    Player.add_money player 200
+  in
+  let bank_pay_100_v2 player =
+    send_message "Life insurance matures. Collect $100";
+    Player.add_money player 100
+  in
+  let bank_pay_100_v3 player =
+    send_message "You inherit $100";
+    Player.add_money player 100
+  in
+  let pay_bank_50 player =
+    send_message "Doctor’s fee. Pay $50";
+    Player.remove_money player 50
+  in
+  let pay_bank_50_v2 player =
+    send_message "Pay school fees of $50";
+    Player.remove_money player 50
+  in
+  let pay_bank_100 player =
+    send_message "Pay hospital fees of $100";
+    Player.remove_money player 100
+  in
+  let chest_cards =
+    [
+      go_to_go;
+      go_to_jail;
+      bank_pay_10;
+      bank_pay_20;
+      bank_pay_50;
+      bank_pay_100;
+      bank_pay_200;
+      bank_pay_100_v2;
+      bank_pay_100_v3;
+      pay_bank_50;
+      pay_bank_50_v2;
+      pay_bank_100;
+    ]
+  in
+  let () = Random.self_init () in
+  let card = Random.int 12 in
+  (List.nth chest_cards card) player
 
 (** [land_on_tax player] handles the player landing on the Tax squares. *)
 let land_on_tax player tax =
@@ -332,18 +504,6 @@ let land_on_free_parking player =
   free_parking_money := 0;
   send_message "You landed on free parking, take some money!";
   Player.add_money player money
-
-(** [land_on_GTJ player] handles the player landing on the Go To Jail square. *)
-let land_on_GTJ player =
-  send_message "You landed on Go To Jail, have fun!";
-  let player = Player.set_jail player true in
-  Player.set_position player 10
-
-(** [land_on_jail player] handles the player landing on the Jail square but they
-    are just visiting. *)
-let land_on_jail player =
-  send_message "You're visiting the Jail!";
-  player
 
 (** [special_square p1 p2 p3 p4 turn game_loop] handles landing on a unique game
     square that is not a property, railroad, or utility. *)
@@ -412,19 +572,6 @@ let handle_jail player =
     in
     loop ()
 
-(** [get_property_by_name prop_name] is the property with the [prop_name] inside
-    of the global property list. *)
-let get_property_by_name prop_name =
-  match
-    List.filter
-      (fun x ->
-        String.lowercase_ascii (Property.get_name x)
-        = String.lowercase_ascii prop_name)
-      Temp_properties.property_list
-  with
-  | [] -> None
-  | h :: _ -> Some h
-
 (** [query_house player] runs once a player has a color set of any kind. It asks
     them if they would like to buy a house on their properties and then
     continues accordingly, changing the property level and the [player]'s money.
@@ -470,6 +617,7 @@ let check_set player =
 let pass_go p old_pos =
   if Player.get_position p < old_pos then Player.add_money p 200 else p
 
+(** [go_to_pos player] sends the player to the position they input.*)
 let go_to_pos (player : Player.t) =
   Printf.printf "\nPosition would you like to fast-travel to: %!";
   let pos = read_line () in
@@ -477,7 +625,13 @@ let go_to_pos (player : Player.t) =
     Property.get_name (check_property_at_pos (int_of_string pos))
   in
   Printf.printf "%s teleported to %s\n%!" (Player.get_name player) property;
-  Player.set_position player (int_of_string pos)
+  let current_position = Player.get_position player in
+  let p =
+    if current_position > Player.get_position player then
+      Player.add_money player 200
+    else player
+  in
+  Player.set_position p (int_of_string pos)
 
 (** [p1_turn p1 p2 p3 p4 game_loop] is a helper function to the game loop when
     it is p1's turn. *)
