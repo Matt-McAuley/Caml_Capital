@@ -49,8 +49,5 @@ let create_property name pos cost base_rent color house_cost h1_rent h2_rent
     level = ref 1;
   }
 
-let upgrade_level p =
-  if !(p.level) >= 8 then Printf.printf "Already max level!"
-  else p.level := !(p.level) + 1
-
+let upgrade_level p = p.level := !(p.level) + 1
 let get_level p = !(p.level)

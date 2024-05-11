@@ -266,25 +266,26 @@ let buy_property (player : Player.t) (property : Property.t) =
   ANSITerminal.(printf [] " for %s: " prop_cost);
   let the_input = read_line () in
   if the_input = "BUY" then begin
-    let p =
-      Player.add_property
-        (Player.remove_money player (Property.get_cost property))
-        property
-    in
-    bought_railroad p property;
-    bought_utility p property;
-    if Player.get_money player > Property.get_cost property then
-      let () =
-        if Player.has_set player prop_color then Property.upgrade_level property
-        else ()
+    if Player.get_money player > Property.get_cost property then begin
+      let p =
+        Player.add_property
+          (Player.remove_money player (Property.get_cost property))
+          property
       in
-      Player.add_property
-        (Player.remove_money player (Property.get_cost property))
-        property
+      bought_railroad p property;
+      bought_utility p property;
+      if Player.has_set p prop_color then begin
+        let all_of_color =
+          List.filter (fun x -> Property.get_color x = prop_color) property_list
+        in
+        let _ = List.map Property.upgrade_level all_of_color in
+        p
+      end
+      else p
+    end
     else begin
-      Printf.printf "Insufficient funds to purchase %s" prop_name;
-      let _ = read_line () in
-      Printf.printf "Insufficient funds to purchase %s%!\n" prop_name;
+      send_message
+        (Printf.sprintf "Insufficient funds to purchase %s!" prop_name);
       player
     end
   end
@@ -665,7 +666,10 @@ let rec query_house player =
         print_endline "There is no property by that name!";
         query_house player
     | Some prop ->
-        if Player.has_set player (Property.get_color prop) then
+        if Property.get_level prop = 7 then begin
+          Printf.printf "Already max level!%!\n";
+          query_house player end
+        else if Player.has_set player (Property.get_color prop) then
           if Player.get_money player > Property.get_house_cost prop then begin
             print_string [] (Player.get_name player ^ " bought a house on ");
             print_string (Property.get_color prop) (Property.get_name prop);
@@ -673,9 +677,8 @@ let rec query_house player =
             Property.upgrade_level prop;
             Printf.printf "The rent of the property is now %i %!\n"
               (Property.get_rent prop);
-            Printf.printf "Press \"ENTER\" to continue: %!";
-            let _ = read_line () in
-            Player.remove_money player (Property.get_house_cost prop)
+            query_house
+              (Player.remove_money player (Property.get_house_cost prop))
           end
           else begin
             print_endline "You do not have enough money!";
