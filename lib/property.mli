@@ -45,7 +45,8 @@ val create_property :
     [h4_rent], [hotel_rent]. *)
 
 val upgrade_level : t -> unit
-(** [upgrade_level p] is the property [p] with its level upgraded. *)
+(** [upgrade_level p] is the property [p] with its level upgraded unless it
+    already has a max level of 8, if so it prints a message. *)
 
 val get_level : t -> int
 (** [get_level p] returns the level of the property. *)

@@ -1,7 +1,46 @@
 open Final_project
-open Temp_properties
 open ANSITerminal
 
+(** [color_from_color_string color_string] is the ANSITerminal color that
+    corresponds to [color_string].*)
+let color_from_color_string color_string =
+  if color_string = "default" then [ default ]
+  else if color_string = "yor" then [ yellow; on_red ]
+  else if color_string = "white" then [ white ]
+  else if color_string = "cyan" then [ cyan ]
+  else if color_string = "magenta" then [ magenta ]
+  else if color_string = "roy" then [ red; on_yellow ]
+  else if color_string = "red" then [ red ]
+  else if color_string = "yellow" then [ yellow ]
+  else if color_string = "green" then [ green ]
+  else [ blue ]
+
+(** [property_from_string_list lst] is a property created from [lst] where each
+    value fulfils the respective value within property creation.*)
+let property_from_string_list lst =
+  let name = List.nth lst 0 in
+  let pos = int_of_string (List.nth lst 1) in
+  let cost = int_of_string (List.nth lst 2) in
+  let base_rent = int_of_string (List.nth lst 3) in
+  let color_string = List.nth lst 4 in
+  let color = color_from_color_string color_string in
+  let house_cost = int_of_string (List.nth lst 5) in
+  let h1_rent = int_of_string (List.nth lst 6) in
+  let h2_rent = int_of_string (List.nth lst 7) in
+  let h3_rent = int_of_string (List.nth lst 8) in
+  let h4_rent = int_of_string (List.nth lst 9) in
+  let hotel_rent = int_of_string (List.nth lst 10) in
+  let mortgage = int_of_string (List.nth lst 11) in
+  Property.create_property name pos cost base_rent color house_cost h1_rent
+    h2_rent h3_rent h4_rent hotel_rent mortgage
+
+(** [prop_list_from_csv] is a list of properties loaded in from the csv file
+    'properties.csv'.*)
+let prop_list_from_csv () =
+  let string_list : string list list = Csv.load "data/properties.csv" in
+  List.map property_from_string_list (List.tl string_list)
+
+let property_list = prop_list_from_csv ()
 let free_parking_money = ref 0
 let dev_mode = ref false
 
@@ -133,6 +172,14 @@ let roll_dice () =
   let () = Random.self_init () in
   2 + Random.int 10
 
+(** [send_message message] sends the player a message and asks them to press
+    enter before continuing. *)
+let send_message message =
+  Printf.printf "%s\n" message;
+  Printf.printf "\nPress \"ENTER\" to continue: %!";
+  let _ = read_line () in
+  ()
+
 (** [move_player_random player] is a [player] with position updated according to
     a random roll of two dice with values over 22 being truncated to fit on the
     board. *)
@@ -246,8 +293,24 @@ let buy_property (player : Player.t) (property : Property.t) =
 (** [pay_utility property] returns the rent that a player who lands on a utility
     pays. *)
 let pay_utility property =
-  if Property.get_level property = 2 then 10 * roll_dice ()
-  else 4 * roll_dice ()
+  if Property.get_level property = 2 then begin
+    Printf.printf
+      "You landed on a utility, press \"ENTER\" to roll the dice. You will pay \
+       10x the amount rolled: ";
+    let _ = read_line () in
+    let roll = roll_dice () in
+    let () = Printf.printf "Roll: %i\n" roll in
+    10 * roll
+  end
+  else begin
+    Printf.printf
+      "You landed on a utility, press \"ENTER\" to roll the dice. You will pay \
+       4x the amount rolled: ";
+    let _ = read_line () in
+    let roll = roll_dice () in
+    let () = Printf.printf "Roll: %i\n" roll in
+    4 * roll
+  end
 
 (** [pay_rent player owner property] is the tuple of [(player, owner)] where
     their respective bank accounts have been adjusted according to the rent.
@@ -291,14 +354,6 @@ let land_on_prop property player p1 p2 p3 p4 =
       else pay_rent player x property
   | None -> (buy_property player property, player)
 
-(** [send_message message] sends the player a message and asks them to press
-    enter before continuing. *)
-let send_message message =
-  Printf.printf "%s\n" message;
-  Printf.printf "\nPress \"ENTER\" to continue: %!";
-  let _ = read_line () in
-  ()
-
 (** [get_property_by_name prop_name] is the property with the [prop_name] inside
     of the global property list. *)
 let get_property_by_name prop_name =
@@ -307,7 +362,7 @@ let get_property_by_name prop_name =
       (fun x ->
         String.lowercase_ascii (Property.get_name x)
         = String.lowercase_ascii prop_name)
-      Temp_properties.property_list
+      property_list
   with
   | [] -> None
   | h :: _ -> Some h
@@ -347,6 +402,7 @@ let land_on_jail player =
 (** [land_on_chance player] handles the player landing on the Chance squares
     squares. *)
 let land_on_chance player =
+  Printf.printf "You landed on Chance, here's your card: \n";
   let go_to_boardwalk player =
     send_message "Advance to Boardwalk.";
     teleport player "Boardwalk"
@@ -384,11 +440,19 @@ let land_on_chance player =
   let pay_bank_50 player =
     send_message
       "You have been elected Chairman of the Board. Pay the bank $50.";
-    Player.remove_money player 50
+    if Player.get_money player <= 50 then begin
+      send_message "You're out of money!";
+      Player.empty
+    end
+    else Player.remove_money player 50
   in
   let pay_bank_150 player =
     send_message "Speeding fine $150.";
-    Player.remove_money player 150
+    if Player.get_money player <= 150 then begin
+      send_message "You're out of money!";
+      Player.empty
+    end
+    else Player.remove_money player 150
   in
   let go_back_3 player =
     send_message "Go Back 3 Spaces.";
@@ -415,6 +479,7 @@ let land_on_chance player =
 
 (** [land_on_chest player] handles the player landing on the Community Chest. *)
 let land_on_chest player =
+  Printf.printf "You landed on Community Chest, here's your card: \n";
   let go_to_go player =
     send_message "Advance to Go (Collect $200).";
     teleport player "GO!"
@@ -454,15 +519,27 @@ let land_on_chest player =
   in
   let pay_bank_50 player =
     send_message "Doctor’s fee. Pay $50";
-    Player.remove_money player 50
+    if Player.get_money player <= 50 then begin
+      send_message "You're out of money!";
+      Player.empty
+    end
+    else Player.remove_money player 50
   in
   let pay_bank_50_v2 player =
     send_message "Pay school fees of $50";
-    Player.remove_money player 50
+    if Player.get_money player <= 50 then begin
+      send_message "You're out of money!";
+      Player.empty
+    end
+    else Player.remove_money player 50
   in
   let pay_bank_100 player =
     send_message "Pay hospital fees of $100";
-    Player.remove_money player 100
+    if Player.get_money player <= 100 then begin
+      send_message "You're out of money!";
+      Player.empty
+    end
+    else Player.remove_money player 100
   in
   let chest_cards =
     [
@@ -517,8 +594,7 @@ let special_square player property =
   else if name = "Free Parking" then land_on_free_parking player
   else if name = "Go To Jail" then land_on_GTJ player
   else if name = "Jail" then land_on_jail player
-  else (* Utilities *)
-    player
+  else (* Utilities *) player
 
 (** [choose_roll player] handles if the [player] chose to roll the dice to get
     out of jail. *)
@@ -619,19 +695,24 @@ let pass_go p old_pos =
 
 (** [go_to_pos player] sends the player to the position they input.*)
 let go_to_pos (player : Player.t) =
-  Printf.printf "\nPosition would you like to fast-travel to: %!";
-  let pos = read_line () in
-  let property =
-    Property.get_name (check_property_at_pos (int_of_string pos))
+  let rec loop () =
+    Printf.printf "\nPosition would you like to fast-travel to: %!";
+    let pos_string = read_line () in
+    match int_of_string_opt pos_string with
+    | None -> loop ()
+    | Some pos ->
+        let property = Property.get_name (check_property_at_pos pos) in
+        Printf.printf "%s teleported to %s\n%!" (Player.get_name player)
+          property;
+        let current_position = Player.get_position player in
+        let p =
+          if current_position > Player.get_position player then
+            Player.add_money player 200
+          else player
+        in
+        Player.set_position p pos
   in
-  Printf.printf "%s teleported to %s\n%!" (Player.get_name player) property;
-  let current_position = Player.get_position player in
-  let p =
-    if current_position > Player.get_position player then
-      Player.add_money player 200
-    else player
-  in
-  Player.set_position p (int_of_string pos)
+  loop ()
 
 (** [p1_turn p1 p2 p3 p4 game_loop] is a helper function to the game loop when
     it is p1's turn. *)
