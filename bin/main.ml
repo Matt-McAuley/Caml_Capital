@@ -214,11 +214,11 @@ let buy_property (player : Player.t) (property : Property.t) =
   let prop_name = Property.get_name property in
   let prop_color = Property.get_color property in
   let prop_cost = string_of_int (Property.get_cost property) in
-  ANSITerminal.(printf [] "Type \"b\" if you want to purchase ");
+  ANSITerminal.(printf [] "Type \"BUY\" if you want to purchase ");
   ANSITerminal.(printf prop_color "%s" prop_name);
   ANSITerminal.(printf [] " for %s: " prop_cost);
   let the_input = read_line () in
-  if the_input = "b" then begin
+  if the_input = "BUY" then begin
     let p =
       Player.add_property
         (Player.remove_money player (Property.get_cost property))
