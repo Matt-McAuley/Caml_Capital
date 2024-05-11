@@ -611,30 +611,37 @@ let rec game_loop (p1 : Player.t) (p2 : Player.t) (p3 : Player.t)
     function on turn = 1. *)
 let run_game p1 p2 p3 p4 = game_loop p1 p2 p3 p4 1
 
+let initialize_game () =
+  let _ = Sys.command "clear" in
+  let () = print_string [] "Player1 type your name: " in
+  let p1 = make_player () in
+  (* Create player 2*)
+  let () = print_string [] "Player2 type your name: " in
+  let p2 = make_player () in
+  (* Create player 3*)
+  let () = print_string [] "Player3 type your name: " in
+  let p3 = make_player () in
+  (* Create player 3*)
+  let () = print_string [] "Player4 type your name: " in
+  let p4 = make_player () in
+  let () = run_game p1 p2 p3 p4 in
+  print_endline "Gameover"
+
 (** Begins game by asking player to type start*)
 let () =
   (* Terminal.setup_term (); Terminal.input_non_canonique_restart_unblocked
      ~when_unblocked:handle_key stdin; Terminal.restore_term () *)
   print_logo ();
-  let () = print_string [] "\nPress \"ENTER\" to begin the game: " in
+  let () =
+    print_string []
+      "\nPress \"ENTER\" to begin the game or \"HELP\" for instructions: "
+  in
   let the_input = read_line () in
-  if the_input = "" then begin
-    (* Create player 1*)
-    let () = print_string [] "Player1 type your name: " in
-    let p1 = make_player () in
-    (* Create player 2*)
-    let () = print_string [] "Player2 type your name: " in
-    let p2 = make_player () in
-    (* Create player 3*)
-    let () = print_string [] "Player3 type your name: " in
-    let p3 = make_player () in
-    (* Create player 3*)
-    let () = print_string [] "Player4 type your name: " in
-    let p4 = make_player () in
-    let () = run_game p1 p2 p3 p4 in
-    print_endline "Gameover"
-  end
+  if the_input = "" then initialize_game ()
   else if the_input = "HELP" then begin
     let _ = Sys.command "clear" in
-    print_help ()
+    print_help ();
+    let () = print_string [] "\nPress \"ENTER\" to begin the game: " in
+    let the_input = read_line () in
+    if the_input = "" then initialize_game ()
   end
