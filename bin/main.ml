@@ -668,7 +668,8 @@ let rec query_house player =
     | Some prop ->
         if Property.get_level prop = 7 then begin
           Printf.printf "Already max level!%!\n";
-          query_house player end
+          query_house player
+        end
         else if Player.has_set player (Property.get_color prop) then
           if Player.get_money player > Property.get_house_cost prop then begin
             print_string [] (Player.get_name player ^ " bought a house on ");
