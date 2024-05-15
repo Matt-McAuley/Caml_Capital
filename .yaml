@@ -9,7 +9,7 @@ group:
 pm:
   name: Parth Sarkar
   netid: ps679
-publish: false
+publish: true
 title: "Caml Capital (CC)"
 git-repo: "https://github.coecis.cornell.edu/mwm223/cs3110-final-project"
 demo-video-url: ""
