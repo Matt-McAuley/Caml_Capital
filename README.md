@@ -45,19 +45,19 @@ which are important practices to follow in the industry.
 ## Images
 
 #### Start Screen
-<img src="https://mattmcauley.com/assets/projects/Caml_Capital/start.png" alt="Image" style="width: 95%">
+<img src="./assets/images/readme/start.png" alt="Image" style="width: 95%">
 
 #### Buying Properties
-<img src="https://mattmcauley.com/assets/projects/Caml_Capital/buying.png" alt="Image" style="width: 95%">
+<img src="./assets/images/readme/buying.png" alt="Image" style="width: 95%">
 
 #### Paying Others
-<img src="https://mattmcauley.com/assets/projects/Caml_Capital/paying.png" alt="Image" style="width: 95%">
+<img src="./assets/images/readme/paying.png" alt="Image" style="width: 95%">
 
 #### Adding Houses
-<img src="https://mattmcauley.com/assets/projects/Caml_Capital/houses.png" alt="Image" style="width: 95%">
+<img src="./assets/images/readme/houses.png" alt="Image" style="width: 95%">
 
 #### Chance Cards
-<img src="https://mattmcauley.com/assets/projects/Caml_Capital/chance.png" alt="Image" style="width: 95%">
+<img src="./assets/images/readme/chance.png" alt="Image" style="width: 95%">
 
 ## Running locally (Linux/MacOS - requires dune and opam)
 
